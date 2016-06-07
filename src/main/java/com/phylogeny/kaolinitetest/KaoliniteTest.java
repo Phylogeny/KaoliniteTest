@@ -25,10 +25,10 @@ public class KaoliniteTest
 		proxy.preInit();
 	}
 	
-    @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
-    	proxy.init();
-    }
+	@EventHandler
+	public void init(FMLInitializationEvent event)
+	{
+		proxy.init();
+	}
 	
 }

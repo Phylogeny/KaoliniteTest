@@ -17,10 +17,10 @@ public class RecipesKaoliniteTest
 		}
 		addShapelessRecipe(ItemsKaoliniteTest.crucibleClayPowder, 1, inputs);
 		GameRegistry.addShapedRecipe(new ItemStack(ItemsKaoliniteTest.unfiredCrucible), new Object[]{
-	        "A A",
-	        "A A",
-	        "AAA",
-	        'A', ItemsKaoliniteTest.wetCrucibleClay
+			"A A",
+			"A A",
+			"AAA",
+			'A', ItemsKaoliniteTest.wetCrucibleClay
 		});
 		addSmeltingRecipe(ItemsKaoliniteTest.kaoliniteBall, ItemsKaoliniteTest.kaoliniteBrick);
 		addSmeltingRecipe(ItemsKaoliniteTest.unfiredCrucible, ItemsKaoliniteTest.crucible);
