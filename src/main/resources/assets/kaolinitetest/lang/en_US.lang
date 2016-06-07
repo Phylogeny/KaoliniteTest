@@ -1,0 +1,12 @@
+itemGroup.KaoliniteTest=Crucible Production
+item.kaolinitetest:powder_aluminum.name=Aluminum Powder
+item.kaolinitetest:powder_silica.name=Silica Powder
+item.kaolinitetest:powder_kaolinite.name=Kaolinite Powder
+item.kaolinitetest:powder_crucible_clay.name=Crucible Clay Powder
+item.kaolinitetest:bucket_supernatant_precipitate.name=Bucket of Supernatant and Precipitated Kaolinite
+item.kaolinitetest:precipitate_bucket.name=Bucket of Precipitated Kaolinite
+item.kaolinitetest:ball_kaolinite.name=Ball of Wet Kaolinite
+item.kaolinitetest:brick_kaolinite.name=Kaolinite Brick
+item.kaolinitetest:crucible_clay_wet.name=Wet Crucible Clay
+item.kaolinitetest:crucible_unfired.name=Unfired Crucible
+item.kaolinitetest:crucible.name=Crucible

@@ -1,0 +1,17 @@
+[
+{
+  "modid": "KaoliniteTest",
+  "name": "Kaolinite Test",
+  "description": "This is a test for Applied Logistics of kaolinite as it applies to crucible production.",
+  "version": "1.9-1.0.0",
+  "mcversion": "1.9",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Phylogeny"],
+  "credits": "FireBall1725 and GlassPelican for making Applied Logistics.",
+  "logoFile": "",
+  "screenshots": [],
+  "requiredMods": [],
+  "dependencies": []
+}
+]
