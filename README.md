@@ -1,2 +1,2 @@
 # KaoliniteTest
-This is a test for Applied Logistics of kaolinite as it applies to crucible production.
+This is a test for the Applied Logistics mod of the mechanics/items/processes involved in converting aluminum and silica fist into kaolinite and then into a crucible.
