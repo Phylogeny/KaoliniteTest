@@ -1,8 +1,10 @@
 package com.phylogeny.kaolinitetest.init;
 
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class RecipesKaoliniteTest
@@ -25,10 +27,14 @@ public class RecipesKaoliniteTest
 		addSmeltingRecipe(ItemsKaoliniteTest.kaoliniteBall, ItemsKaoliniteTest.kaoliniteBrick);
 		addSmeltingRecipe(ItemsKaoliniteTest.unfiredCrucible, ItemsKaoliniteTest.crucible);
 		
-		//TODO this is just for demonstration - in AL, kaolinite bricks will be pulverized, not crafted
+		UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
+		ItemStack bucketStack = new ItemStack(bucket);
+		FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
+		bucket.fill(bucketStack, fluidStack, true);
+		GameRegistry.addSmelting(bucketStack, new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
+		
+		//this is just for demonstration - in AL, kaolinite bricks will be pulverized, not crafted
 			addShapelessRecipe(ItemsKaoliniteTest.kaolinitePowder, 7, new Object[]{ItemsKaoliniteTest.kaoliniteBrick});
-		//TODO this is just for demonstration - in AL, a bucket of a custom fluid will be heated to form the bucket of supernatant/precipitate
-			addSmeltingRecipe(Items.lava_bucket, ItemsKaoliniteTest.supernatantAndPrecipitateBucket);
 	}
 	
 	private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)

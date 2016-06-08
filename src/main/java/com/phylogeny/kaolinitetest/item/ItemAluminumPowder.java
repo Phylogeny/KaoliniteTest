@@ -2,10 +2,11 @@ package com.phylogeny.kaolinitetest.item;
 
 import java.util.List;
 
+import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
+
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -47,8 +48,7 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase
 								{
 									entityItem.setDead();
 									entityItem2.setDead();
-									//TODO this is just for demonstration - in AL, a custom fluid will be spawned
-									world.setBlockState(pos, Blocks.flowing_lava.getDefaultState(), 3);
+									world.setBlockState(pos, FluidsKaoliniteTest.kaolinitePrecursorBlock.getDefaultState(), 3);
 								}
 							}
 						}

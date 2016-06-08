@@ -6,6 +6,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
+import com.phylogeny.kaolinitetest.init.ModelRegistration;
 
 public class ProxyClient extends ProxyCommon
 {
@@ -24,6 +25,7 @@ public class ProxyClient extends ProxyCommon
 		register(ItemsKaoliniteTest.wetCrucibleClay);
 		register(ItemsKaoliniteTest.unfiredCrucible);
 		register(ItemsKaoliniteTest.crucible);
+		ModelRegistration.registerFluidModel();
 	}
 	
 	@Override

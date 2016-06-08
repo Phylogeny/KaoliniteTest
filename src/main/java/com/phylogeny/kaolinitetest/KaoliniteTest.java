@@ -3,6 +3,7 @@ package com.phylogeny.kaolinitetest;
 import com.phylogeny.kaolinitetest.proxy.ProxyCommon;
 import com.phylogeny.kaolinitetest.reference.Reference;
 
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -18,6 +19,11 @@ public class KaoliniteTest
 	public static ProxyCommon proxy;
 	
 	public static SimpleNetworkWrapper packetNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
+	
+	static
+	{
+        FluidRegistry.enableUniversalBucket();
+    }
 	
 	@EventHandler
 	public void preinit(FMLPreInitializationEvent event)
