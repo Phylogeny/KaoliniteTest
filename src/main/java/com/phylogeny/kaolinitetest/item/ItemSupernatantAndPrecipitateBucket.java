@@ -83,7 +83,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase
 		}
 		SoundEvent soundevent = SoundEvents.item_bucket_empty;
 		world.playSound(worldIn, pos, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
-		world.setBlockState(pos, Blocks.water.getDefaultState(), 11); //TODO bug - water does not spread until block update
+		world.setBlockState(pos, Blocks.flowing_water.getDefaultState(), 3);
 		return true;
 	}
 	

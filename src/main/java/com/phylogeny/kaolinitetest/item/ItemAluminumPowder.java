@@ -48,7 +48,7 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase
 									entityItem.setDead();
 									entityItem2.setDead();
 									//TODO this is just for demonstration - in AL, a custom fluid will be spawned
-									world.setBlockState(pos, Blocks.lava.getDefaultState(), 3);
+									world.setBlockState(pos, Blocks.flowing_lava.getDefaultState(), 3);
 								}
 							}
 						}
