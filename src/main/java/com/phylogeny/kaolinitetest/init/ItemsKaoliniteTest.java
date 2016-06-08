@@ -11,8 +11,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ItemsKaoliniteTest
 {
-    public static Item aluminumPowder, silicaPowder, kaolinitePowder, crucibleClayPowder, supernatantAndPrecipitateBucket,
-                        precipitateBucket, kaoliniteBall, kaoliniteBrick, wetCrucibleClay, unfiredCrucible, crucible;
+    public static Item aluminumPowder, silicaPowder, kaolinitePowder, crucibleClayPowder, supernatantAndPrecipitateBucket, precipitateBucket,
+                        kaoliniteBall, kaoliniteBrick, kaoliniteShard, wetCrucibleClay, unfiredCrucible, crucible;
 
     public static void itemsInit()
     {
@@ -24,6 +24,7 @@ public class ItemsKaoliniteTest
         precipitateBucket = registerItem(new ItemPrecipitateBucket("precipitate_bucket"));
         kaoliniteBall = registerItem("ball_kaolinite");
         kaoliniteBrick = registerItem("brick_kaolinite");
+        kaoliniteShard = registerItem("shard_kaolinite");
         wetCrucibleClay = registerItem("crucible_clay_wet");
         unfiredCrucible = registerItem("crucible_unfired");
         crucible = registerItem("crucible");

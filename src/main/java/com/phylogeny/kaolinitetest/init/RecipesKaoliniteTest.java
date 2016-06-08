@@ -33,8 +33,9 @@ public class RecipesKaoliniteTest
         bucket.fill(bucketStack, fluidStack, true);
         GameRegistry.addSmelting(bucketStack, new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
 
-        //this is just for demonstration - in AL, kaolinite bricks will be pulverized, not crafted
+        //this is just for demonstration - in AL, kaolinite bricks/shards will be pulverized, not crafted
             addShapelessRecipe(ItemsKaoliniteTest.kaolinitePowder, 7, new Object[]{ItemsKaoliniteTest.kaoliniteBrick});
+            addShapelessRecipe(ItemsKaoliniteTest.kaolinitePowder, 1, new Object[]{ItemsKaoliniteTest.kaoliniteShard});
     }
 
     private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)
