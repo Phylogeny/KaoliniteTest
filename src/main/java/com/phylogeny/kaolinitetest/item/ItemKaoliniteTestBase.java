@@ -6,11 +6,11 @@ import net.minecraft.item.Item;
 
 public class ItemKaoliniteTestBase extends Item
 {
-	public ItemKaoliniteTestBase(String name)
-	{
-		setRegistryName(name);
-		setUnlocalizedName(getRegistryName().toString());
-		setCreativeTab(CreativeTabKaoliniteTest.CREATIVE_TAB);
-	}
-	
+    public ItemKaoliniteTestBase(String name)
+    {
+        setRegistryName(name);
+        setUnlocalizedName(getRegistryName().toString());
+        setCreativeTab(CreativeTabKaoliniteTest.CREATIVE_TAB);
+    }
+
 }

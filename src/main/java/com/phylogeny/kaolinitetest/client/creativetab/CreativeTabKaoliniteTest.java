@@ -10,14 +10,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class CreativeTabKaoliniteTest
 {
-	public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(Reference.MOD_ID)
-	{
-		@Override
-		@SideOnly(Side.CLIENT)
-		public Item getTabIconItem()
-		{
-			return ItemsKaoliniteTest.crucible;
-		}
-	};
-	
+    public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(Reference.MOD_ID)
+    {
+        @Override
+        @SideOnly(Side.CLIENT)
+        public Item getTabIconItem()
+        {
+            return ItemsKaoliniteTest.crucible;
+        }
+    };
+
 }

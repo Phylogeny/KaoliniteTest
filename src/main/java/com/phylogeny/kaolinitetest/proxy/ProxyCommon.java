@@ -6,15 +6,15 @@ import com.phylogeny.kaolinitetest.init.RecipesKaoliniteTest;
 
 public class ProxyCommon
 {
-	public void preInit()
-	{
-		ItemsKaoliniteTest.itemsInit();
-		FluidsKaoliniteTest.registerFluid();
-	}
-	
-	public void init()
-	{
-		RecipesKaoliniteTest.recipeInit();
-	}
-	
+    public void preInit()
+    {
+        ItemsKaoliniteTest.itemsInit();
+        FluidsKaoliniteTest.registerFluid();
+    }
+
+    public void init()
+    {
+        RecipesKaoliniteTest.recipeInit();
+    }
+
 }

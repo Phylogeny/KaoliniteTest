@@ -15,26 +15,26 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 @Mod(modid = Reference.MOD_ID, version = Reference.VERSION)
 public class KaoliniteTest
 {
-	@SidedProxy(clientSide = Reference.CLIENT_CLASSPATH, serverSide = Reference.COMMON_CLASSPATH)
-	public static ProxyCommon proxy;
-	
-	public static SimpleNetworkWrapper packetNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
-	
-	static
-	{
+    @SidedProxy(clientSide = Reference.CLIENT_CLASSPATH, serverSide = Reference.COMMON_CLASSPATH)
+    public static ProxyCommon proxy;
+
+    public static SimpleNetworkWrapper packetNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
+
+    static
+    {
         FluidRegistry.enableUniversalBucket();
     }
-	
-	@EventHandler
-	public void preinit(FMLPreInitializationEvent event)
-	{
-		proxy.preInit();
-	}
-	
-	@EventHandler
-	public void init(FMLInitializationEvent event)
-	{
-		proxy.init();
-	}
-	
+
+    @EventHandler
+    public void preinit(FMLPreInitializationEvent event)
+    {
+        proxy.preInit();
+    }
+
+    @EventHandler
+    public void init(FMLInitializationEvent event)
+    {
+        proxy.init();
+    }
+
 }

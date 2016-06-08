@@ -12,21 +12,21 @@ import net.minecraft.world.World;
 
 public class ItemPrecipitateBucket extends ItemKaoliniteTestBase
 {
-	public ItemPrecipitateBucket(String name)
-	{
-		super(name);
-		setMaxStackSize(1);
-	}
-	
-	@Override
-	public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn,
-			World worldIn, EntityPlayer playerIn, EnumHand hand)
-	{
-		if (!worldIn.isRemote)
-		{
-			playerIn.dropItem(new ItemStack(ItemsKaoliniteTest.kaoliniteBall), false, false);
-		}
-		return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(Items.bucket));
-	}
-	
+    public ItemPrecipitateBucket(String name)
+    {
+        super(name);
+        setMaxStackSize(1);
+    }
+
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn,
+            World worldIn, EntityPlayer playerIn, EnumHand hand)
+    {
+        if (!worldIn.isRemote)
+        {
+            playerIn.dropItem(new ItemStack(ItemsKaoliniteTest.kaoliniteBall), false, false);
+        }
+        return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(Items.bucket));
+    }
+
 }

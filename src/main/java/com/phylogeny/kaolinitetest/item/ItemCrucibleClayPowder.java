@@ -11,31 +11,31 @@ import net.minecraft.world.World;
 
 public class ItemCrucibleClayPowder extends ItemKaoliniteTestBase
 {
-	public ItemCrucibleClayPowder(String name)
-	{
-		super(name);
-	}
-	
-	@Override
-	public boolean onEntityItemUpdate(EntityItem entityItem)
-	{
-		World world = entityItem.worldObj;
-		if (!world.isRemote && !entityItem.cannotPickup())
-		{
-			int x = MathHelper.floor_double(entityItem.posX);
-			int y = MathHelper.floor_double(entityItem.posY);
-			int z = MathHelper.floor_double(entityItem.posZ);
-			BlockPos pos = new BlockPos(x, y, z);
-			if (world.getBlockState(pos).getMaterial() == Material.water)
-			{
-				ItemStack stack = entityItem.getEntityItem();
-				if (stack != null)
-				{
-					entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));
-				}
-			}
-		}
-		return false;
-	}
-	
+    public ItemCrucibleClayPowder(String name)
+    {
+        super(name);
+    }
+
+    @Override
+    public boolean onEntityItemUpdate(EntityItem entityItem)
+    {
+        World world = entityItem.worldObj;
+        if (!world.isRemote && !entityItem.cannotPickup())
+        {
+            int x = MathHelper.floor_double(entityItem.posX);
+            int y = MathHelper.floor_double(entityItem.posY);
+            int z = MathHelper.floor_double(entityItem.posZ);
+            BlockPos pos = new BlockPos(x, y, z);
+            if (world.getBlockState(pos).getMaterial() == Material.water)
+            {
+                ItemStack stack = entityItem.getEntityItem();
+                if (stack != null)
+                {
+                    entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));
+                }
+            }
+        }
+        return false;
+    }
+
 }

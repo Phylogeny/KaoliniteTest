@@ -14,15 +14,15 @@ import net.minecraftforge.client.model.ModelLoader;
 
 public class ModelRegistration
 {
-	public static void registerFluidModel()
-	{
-		Block block = FluidsKaoliniteTest.kaolinitePrecursorBlock;
+    public static void registerFluidModel()
+    {
+        Block block = FluidsKaoliniteTest.kaolinitePrecursorBlock;
         Item item = Item.getItemFromBlock(block);
         if (item != null)
         {
-        	ModelLoader.registerItemVariants(item);
-        	final ModelResourceLocation modelResourceLocation = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "kaolinite_precursor"),
-            		FluidsKaoliniteTest.kaolinitePrecursor.getName());
+            ModelLoader.registerItemVariants(item);
+            final ModelResourceLocation modelResourceLocation = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "kaolinite_precursor"),
+                    FluidsKaoliniteTest.kaolinitePrecursor.getName());
             ItemMeshDefinition mesh = new ItemMeshDefinition()
             {
                 @Override
@@ -42,6 +42,6 @@ public class ModelRegistration
             };
             ModelLoader.setCustomStateMapper(block, mapper);
         }
-	}
-	
+    }
+
 }
