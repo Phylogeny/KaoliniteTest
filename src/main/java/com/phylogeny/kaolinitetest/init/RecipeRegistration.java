@@ -7,7 +7,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-public class RecipesKaoliniteTest
+public class RecipeRegistration
 {
     public static void recipeInit()
     {
