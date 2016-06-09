@@ -4,8 +4,6 @@ import java.util.Random;
 
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.block.state.pattern.BlockMatcher;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -22,18 +20,47 @@ public class WorldGen implements IWorldGenerator
     public void generate(Random random, int chunkX, int chunkZ, World world,
             IChunkGenerator chunkGenerator, IChunkProvider chunkProvider)
     {
-        chunkX *= 16;
-        chunkZ *= 16;
-        for (int i = 0; i < 400; i++)
+        BlockPos blockPos = new BlockPos(chunkX * 16 + random.nextInt(16),
+                chunkProvider.provideChunk(chunkX, chunkZ).getTopFilledSegment() + 16,
+                chunkZ * 16 + random.nextInt(16));
+        BiomeGenBase biome = world.getBiomeGenForCoords(blockPos);
+        if (!(biome == Biomes.jungle || biome == Biomes.jungleEdge || biome == Biomes.jungleHills))
         {
-            BlockPos blockPos = new BlockPos(chunkX + random.nextInt(16), random.nextInt(255), chunkZ + random.nextInt(16));
-            BiomeGenBase biome = world.getBiomeGenForCoords(blockPos);
-            if (biome == Biomes.jungle || biome == Biomes.jungleEdge || biome == Biomes.jungleHills)
+            return;
+        }
+        int minLevel = world.getSeaLevel() - 10;
+        boolean oneBelow = random.nextBoolean();
+        while (true)
+        {
+            if (world.getBlockState(blockPos).getBlock() == Blocks.dirt)
             {
-                IBlockState state = world.getBlockState(blockPos);
-                if (state.getBlock().isReplaceableOreGen(state, world, blockPos, BlockMatcher.forBlock(Blocks.dirt)))
+                if (oneBelow)
                 {
-                    world.setBlockState(blockPos, BlocksKaoliniteTest.kaoliniteOre.getDefaultState(), 2);
+                    oneBelow = false;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            blockPos = blockPos.down();
+            if (blockPos.getY() < minLevel)
+            {
+                return;
+            }
+        }
+        int margin = 2;
+        int marginSqr = margin * margin;
+        for (int i = blockPos.getX() - margin; i <= blockPos.getX() + margin; i++)
+        {
+            for (int j = blockPos.getZ() - margin; j <= blockPos.getZ() + margin; j++)
+            {
+                int x = i - blockPos.getX();
+                int y = j - blockPos.getZ();
+                BlockPos blockPos2 = new BlockPos(i, blockPos.getY(), j);
+                if (x * x + y * y <= marginSqr && world.getBlockState(blockPos2).getBlock() == Blocks.dirt)
+                {
+                    world.setBlockState(blockPos2, BlocksKaoliniteTest.kaoliniteBlock.getDefaultState(), 2);
                 }
             }
         }

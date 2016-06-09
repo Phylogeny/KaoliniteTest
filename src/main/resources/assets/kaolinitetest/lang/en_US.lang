@@ -13,4 +13,4 @@ item.kaolinitetest:crucible_unfired.name=Unfired Crucible
 item.kaolinitetest:crucible.name=Crucible
 fluid.kaolinite_precursor=Kaolinite Precursor Solution
 tile.kaolinitetest:kaolinite_precursor.name=Kaolinite Precursor Solution
-tile.kaolinitetest:kaolinite_ore.name=Kaolinite-rich Dirt
+tile.kaolinitetest:kaolinite_block.name=Kaolinite

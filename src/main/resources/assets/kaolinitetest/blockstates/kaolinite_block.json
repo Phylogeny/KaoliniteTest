@@ -3,7 +3,7 @@
 	"defaults": {
 		"model": "minecraft:cube_all",
 		"textures": {
-			"all": "minecraft:blocks/dirt"
+			"all": "kaolinitetest:blocks/block_kaolinite"
 		}
 	},
 	"variants": {
