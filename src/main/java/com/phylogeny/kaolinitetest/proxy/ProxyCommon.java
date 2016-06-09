@@ -4,6 +4,7 @@ import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.RecipesKaoliniteTest;
+import com.phylogeny.kaolinitetest.world.WorldGen;
 
 public class ProxyCommon
 {
@@ -17,6 +18,7 @@ public class ProxyCommon
     public void init()
     {
         RecipesKaoliniteTest.recipeInit();
+        WorldGen.registerWorldGen();
     }
 
 }
