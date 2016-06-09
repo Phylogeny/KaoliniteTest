@@ -10,12 +10,12 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class BlocksKaoliniteTest
 {
     public static Block kaoliniteOre = new BlockKaoliniteOre();
-    
+
     public static void registerBlocks()
     {
         registerBlock(kaoliniteOre, "kaolinite_ore");
     }
-    
+
     public static void registerBlock(Block block, String name)
     {
         block.setRegistryName(name);

@@ -33,7 +33,7 @@ public class ModelRegistration
         registerItemModel(ItemsKaoliniteTest.unfiredCrucible);
         registerItemModel(ItemsKaoliniteTest.crucible);
     }
-    
+
     private static void registerFluidModel(Block block, Fluid fluid, String name)
     {
         Item item = Item.getItemFromBlock(block);
@@ -76,7 +76,7 @@ public class ModelRegistration
     {
         registerItemModelWithOptionalVariants(item, false);
     }
-    
+
     private static void registerItemModelWithOptionalVariants(Item item, boolean hasVariants)
     {
         String name = item.getRegistryName().toString();

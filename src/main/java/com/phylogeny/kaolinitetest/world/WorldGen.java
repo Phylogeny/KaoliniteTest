@@ -38,10 +38,10 @@ public class WorldGen implements IWorldGenerator
             }
         }
     }
-    
+
     public static void registerWorldGen()
     {
         GameRegistry.registerWorldGenerator(new WorldGen(), 0);
     }
-    
+
 }

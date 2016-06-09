@@ -23,7 +23,7 @@ public class BlockKaoliniteOre extends Block
         setHardness(0.5F);
         setStepSound(SoundType.GROUND);
     }
-    
+
     @Override
     public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
     {
@@ -38,5 +38,5 @@ public class BlockKaoliniteOre extends Block
         }
         return drops;
     }
-    
+
 }
