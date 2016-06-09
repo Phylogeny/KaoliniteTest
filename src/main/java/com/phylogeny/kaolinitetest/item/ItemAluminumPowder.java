@@ -5,9 +5,10 @@ import java.util.List;
 import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 
-import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -32,8 +33,7 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase
             int y = MathHelper.floor_double(entityItem.posY);
             int z = MathHelper.floor_double(entityItem.posZ);
             BlockPos pos = new BlockPos(x, y, z);
-            if (world.getBlockState(pos).getBlock() != FluidsKaoliniteTest.kaolinitePrecursorBlock
-            		&& world.getBlockState(pos).getMaterial() == Material.water
+            if (world.getBlockState(pos).getBlock() == Blocks.water
             		&& entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7)
             {
             	List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
