@@ -20,7 +20,7 @@ public class ItemCrucibleClayPowder extends ItemKaoliniteTestBase
     public boolean onEntityItemUpdate(EntityItem entityItem)
     {
         World world = entityItem.worldObj;
-        if (!world.isRemote && !entityItem.cannotPickup())
+        if (!world.isRemote)
         {
             int x = MathHelper.floor_double(entityItem.posX);
             int y = MathHelper.floor_double(entityItem.posY);
