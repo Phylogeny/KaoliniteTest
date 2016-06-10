@@ -46,7 +46,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
             } else if (tryPlaceContainedLiquid(playerIn, worldIn, blockpos1)) {
                 playerIn.addStat(StatList.func_188057_b(this));
-                return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(ItemsKaoliniteTest.precipitateBucket));
+                return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(ItemsKaoliniteTest.bucketPrecipitate));
             } else {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
             }

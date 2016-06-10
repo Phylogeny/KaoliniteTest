@@ -20,12 +20,12 @@ public class ModelRegistration
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock,
                 FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
         registerBlockModel(BlocksKaoliniteTest.kaoliniteBlock);
-        registerItemModel(ItemsKaoliniteTest.aluminumPowder);
-        registerItemModel(ItemsKaoliniteTest.silicaPowder);
-        registerItemModel(ItemsKaoliniteTest.kaolinitePowder);
-        registerItemModel(ItemsKaoliniteTest.crucibleClayPowder);
+        registerItemModel(ItemsKaoliniteTest.aluminumDust);
+        registerItemModel(ItemsKaoliniteTest.silicaDust);
+        registerItemModel(ItemsKaoliniteTest.kaoliniteDust);
+        registerItemModel(ItemsKaoliniteTest.crucibleClayDust);
         registerItemModel(ItemsKaoliniteTest.supernatantAndPrecipitateBucket);
-        registerItemModel(ItemsKaoliniteTest.precipitateBucket);
+        registerItemModel(ItemsKaoliniteTest.bucketPrecipitate);
         registerItemModel(ItemsKaoliniteTest.kaoliniteBall);
         registerItemModel(ItemsKaoliniteTest.kaoliniteBrick);
         registerItemModel(ItemsKaoliniteTest.kaoliniteShard);

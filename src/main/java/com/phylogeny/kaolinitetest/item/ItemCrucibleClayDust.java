@@ -9,8 +9,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
-public class ItemCrucibleClayPowder extends ItemKaoliniteTestBase {
-    public ItemCrucibleClayPowder(String name) {
+public class ItemCrucibleClayDust extends ItemKaoliniteTestBase {
+    public ItemCrucibleClayDust(String name) {
         super(name);
     }
 

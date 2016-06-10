@@ -17,8 +17,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
-public class ItemAluminumPowder extends ItemKaoliniteTestBase {
-    public ItemAluminumPowder(String name) {
+public class ItemAluminumDust extends ItemKaoliniteTestBase {
+    public ItemAluminumDust(String name) {
         super(name);
     }
 
@@ -33,10 +33,10 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase {
             IBlockState state = world.getBlockState(pos);
             if (state.getBlock() == Blocks.water && (state.getValue(BlockLiquid.LEVEL)).intValue() == 0 && entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7) {
             	List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
-                EntityItem silicaEntity = getEntityItem(entities, ItemsKaoliniteTest.silicaPowder);
+                EntityItem silicaEntity = getEntityItem(entities, ItemsKaoliniteTest.silicaDust);
                 if (silicaEntity != null) {
                 	removeStack(entityItem, this);
-                	removeStack(silicaEntity, ItemsKaoliniteTest.silicaPowder);
+                	removeStack(silicaEntity, ItemsKaoliniteTest.silicaDust);
 		            world.setBlockState(pos, FluidsKaoliniteTest.kaolinitePrecursorBlock.getDefaultState(), 3);
                 }
             }

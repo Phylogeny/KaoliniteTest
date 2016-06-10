@@ -1,6 +1,6 @@
 {
     "parent": "item/generated",
     "textures": {
-        "layer0": "KaoliniteTest:items/powder_silica"
+        "layer0": "KaoliniteTest:items/bucket_precipitate"
     }
 }

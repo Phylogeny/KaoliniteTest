@@ -1,9 +1,9 @@
 package com.phylogeny.kaolinitetest.init;
 
-import com.phylogeny.kaolinitetest.item.ItemAluminumPowder;
-import com.phylogeny.kaolinitetest.item.ItemCrucibleClayPowder;
+import com.phylogeny.kaolinitetest.item.ItemAluminumDust;
+import com.phylogeny.kaolinitetest.item.ItemCrucibleClayDust;
 import com.phylogeny.kaolinitetest.item.ItemKaoliniteTestBase;
-import com.phylogeny.kaolinitetest.item.ItemPrecipitateBucket;
+import com.phylogeny.kaolinitetest.item.ItemBucketPrecipitate;
 import com.phylogeny.kaolinitetest.item.ItemSupernatantAndPrecipitateBucket;
 
 import net.minecraft.item.Item;
@@ -11,17 +11,17 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ItemsKaoliniteTest
 {
-    public static Item aluminumPowder, silicaPowder, kaolinitePowder, crucibleClayPowder, supernatantAndPrecipitateBucket, precipitateBucket,
+    public static Item aluminumDust, silicaDust, kaoliniteDust, crucibleClayDust, supernatantAndPrecipitateBucket, bucketPrecipitate,
                         kaoliniteBall, kaoliniteBrick, kaoliniteShard, wetCrucibleClay, unfiredCrucible, crucible;
 
     public static void itemsInit()
     {
-        aluminumPowder = registerItem(new ItemAluminumPowder("powder_aluminum"));
-        silicaPowder = registerItem("powder_silica");
-        kaolinitePowder = registerItem("powder_kaolinite");
-        crucibleClayPowder = registerItem(new ItemCrucibleClayPowder("powder_crucible_clay"));
+        aluminumDust = registerItem(new ItemAluminumDust("dust_aluminum"));
+        silicaDust = registerItem("dust_silica");
+        kaoliniteDust = registerItem("dust_kaolinite");
+        crucibleClayDust = registerItem(new ItemCrucibleClayDust("dust_crucible_clay"));
         supernatantAndPrecipitateBucket = registerItem(new ItemSupernatantAndPrecipitateBucket("bucket_supernatant_precipitate"));
-        precipitateBucket = registerItem(new ItemPrecipitateBucket("precipitate_bucket"));
+        bucketPrecipitate = registerItem(new ItemBucketPrecipitate("bucket_precipitate"));
         kaoliniteBall = registerItem("ball_kaolinite");
         kaoliniteBrick = registerItem("brick_kaolinite");
         kaoliniteShard = registerItem("shard_kaolinite");

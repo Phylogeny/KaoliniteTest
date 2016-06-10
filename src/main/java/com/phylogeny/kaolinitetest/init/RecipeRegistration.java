@@ -12,12 +12,12 @@ public class RecipeRegistration
     public static void recipeInit()
     {
         Object[] inputs = new Object[6];
-        inputs[0] = ItemsKaoliniteTest.kaolinitePowder;
+        inputs[0] = ItemsKaoliniteTest.kaoliniteDust;
         for (int i = 1; i < inputs.length; i++)
         {
-            inputs[i] = ItemsKaoliniteTest.silicaPowder;
+            inputs[i] = ItemsKaoliniteTest.silicaDust;
         }
-        addShapelessRecipe(ItemsKaoliniteTest.crucibleClayPowder, 1, inputs);
+        addShapelessRecipe(ItemsKaoliniteTest.crucibleClayDust, 1, inputs);
         GameRegistry.addShapedRecipe(new ItemStack(ItemsKaoliniteTest.unfiredCrucible), new Object[]{
             "A A",
             "A A",
@@ -34,8 +34,8 @@ public class RecipeRegistration
         GameRegistry.addSmelting(bucketStack, new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
 
         //this is just for demonstration - in AL, kaolinite bricks/shards will be pulverized, not crafted
-            addShapelessRecipe(ItemsKaoliniteTest.kaolinitePowder, 7, new Object[]{ItemsKaoliniteTest.kaoliniteBrick});
-            addShapelessRecipe(ItemsKaoliniteTest.kaolinitePowder, 1, new Object[]{ItemsKaoliniteTest.kaoliniteShard});
+            addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 7, ItemsKaoliniteTest.kaoliniteBrick);
+            addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 1, ItemsKaoliniteTest.kaoliniteShard);
     }
 
     private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)
