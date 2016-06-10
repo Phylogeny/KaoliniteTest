@@ -25,7 +25,7 @@ public class BlockKaolinite extends Block {
 
     @Override
     public int quantityDroppedWithBonus(int fortune, Random random) {
-        return this.quantityDropped(random) + random.nextInt(fortune + 1);
+        return quantityDropped(random) + random.nextInt(fortune + 1);
     }
 
     @Override
