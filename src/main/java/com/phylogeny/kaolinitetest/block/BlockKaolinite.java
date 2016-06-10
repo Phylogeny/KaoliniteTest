@@ -17,6 +17,7 @@ public class BlockKaolinite extends Block
         super(Material.ground);
         setHardness(0.6F);
         setStepSound(SoundType.GROUND);
+        setHarvestLevel("shovel", -1);
     }
 
     @Override
