@@ -28,11 +28,10 @@ public class WorldGen implements IWorldGenerator {
         boolean oneBelow = random.nextBoolean();
         while (true) {
             if (world.getBlockState(blockPos).getBlock() == Blocks.dirt) {
-                if (oneBelow) {
-                    oneBelow = false;
-                } else {
-                    break;
+                if (oneBelow && world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
+                	blockPos = blockPos.down();
                 }
+                break;
             }
             blockPos = blockPos.down();
             if (blockPos.getY() < minLevel)
