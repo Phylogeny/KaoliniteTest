@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 
+import net.minecraft.block.Block;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -44,7 +45,8 @@ public class WorldGen implements IWorldGenerator {
                 int x = i - blockPos.getX();
                 int y = j - blockPos.getZ();
                 BlockPos blockPos2 = new BlockPos(i, blockPos.getY(), j);
-                if (x * x + y * y <= marginSqr && world.getBlockState(blockPos2).getBlock() == Blocks.dirt) {
+                Block block = world.getBlockState(blockPos2).getBlock();
+                if (x * x + y * y <= marginSqr && (block == Blocks.dirt || block == Blocks.grass)) {
                     world.setBlockState(blockPos2, BlocksKaoliniteTest.kaoliniteBlock.getDefaultState(), 2);
                 }
             }
