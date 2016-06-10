@@ -17,31 +17,24 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
-public class ItemAluminumPowder extends ItemKaoliniteTestBase
-{
-    public ItemAluminumPowder(String name)
-    {
+public class ItemAluminumPowder extends ItemKaoliniteTestBase {
+    public ItemAluminumPowder(String name) {
         super(name);
     }
 
     @Override
-    public boolean onEntityItemUpdate(EntityItem entityItem)
-    {
+    public boolean onEntityItemUpdate(EntityItem entityItem) {
         World world = entityItem.worldObj;
-        if (!world.isRemote)
-        {
+        if (!world.isRemote) {
             int x = MathHelper.floor_double(entityItem.posX);
             int y = MathHelper.floor_double(entityItem.posY);
             int z = MathHelper.floor_double(entityItem.posZ);
             BlockPos pos = new BlockPos(x, y, z);
             IBlockState state = world.getBlockState(pos);
-            if (state.getBlock() == Blocks.water && (state.getValue(BlockLiquid.LEVEL)).intValue() == 0
-            		&& entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7)
-            {
+            if (state.getBlock() == Blocks.water && (state.getValue(BlockLiquid.LEVEL)).intValue() == 0 && entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7) {
             	List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
                 EntityItem silicaEntity = getEntityItem(entities, ItemsKaoliniteTest.silicaPowder);
-                if (silicaEntity != null)
-                {
+                if (silicaEntity != null) {
                 	removeStack(entityItem, this);
                 	removeStack(silicaEntity, ItemsKaoliniteTest.silicaPowder);
 		            world.setBlockState(pos, FluidsKaoliniteTest.kaolinitePrecursorBlock.getDefaultState(), 3);
@@ -51,25 +44,19 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase
         return false;
     }
 
-	private void removeStack(EntityItem entityItem, Item item)
-	{
+	private void removeStack(EntityItem entityItem, Item item) {
 		ItemStack stack = getStack(entityItem, item);
 		stack.stackSize -= 7;
-		if (stack.stackSize <= 0)
-		{
+		if (stack.stackSize <= 0) {
 			entityItem.setDead();
 		}
 	}
 
-	private EntityItem getEntityItem(List<Entity> entities, Item item)
-	{
-		for (Entity entity : entities)
-		{
-		    if (entity != null && entity instanceof EntityItem)
-		    {
+	private EntityItem getEntityItem(List<Entity> entities, Item item) {
+		for (Entity entity : entities) {
+		    if (entity != null && entity instanceof EntityItem) {
 		        EntityItem entityItem2 = (EntityItem) entity;
-		        if (getStack(entityItem2, item) != null)
-		        {
+		        if (getStack(entityItem2, item) != null) {
 		            return entityItem2;
 		        }
 		    }
@@ -77,12 +64,9 @@ public class ItemAluminumPowder extends ItemKaoliniteTestBase
 		return null;
 	}
 
-	private ItemStack getStack(EntityItem entityItem, Item item)
-	{
+	private ItemStack getStack(EntityItem entityItem, Item item) {
 		ItemStack stack = entityItem.getEntityItem();
-		if (stack != null && stack.getItem() != null
-				&& stack.getItem() == item && stack.stackSize >= 7)
-		{
+		if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
 			return stack;
 		}
 		return null;

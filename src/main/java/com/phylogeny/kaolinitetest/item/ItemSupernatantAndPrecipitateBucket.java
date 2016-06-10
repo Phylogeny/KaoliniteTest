@@ -19,48 +19,35 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 
-public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase
-{
-    public ItemSupernatantAndPrecipitateBucket(String name)
-    {
+public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
+    public ItemSupernatantAndPrecipitateBucket(String name) {
         super(name);
         setMaxStackSize(1);
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
-    {
+    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
         RayTraceResult raytraceresult = getMovingObjectPositionFromPlayer(worldIn, playerIn, false);
         ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemStackIn, raytraceresult);
-        if (ret != null) return ret;
-        if (raytraceresult == null)
-        {
+        if (ret != null)
+        	return ret;
+        if (raytraceresult == null) {
             return new ActionResult(EnumActionResult.PASS, itemStackIn);
-        }
-        else if (raytraceresult.typeOfHit != RayTraceResult.Type.BLOCK)
-        {
+        } else if (raytraceresult.typeOfHit != RayTraceResult.Type.BLOCK) {
             return new ActionResult(EnumActionResult.PASS, itemStackIn);
-        }
-        else
-        {
+        } else {
             BlockPos blockpos = raytraceresult.getBlockPos();
-            if (!worldIn.isBlockModifiable(playerIn, blockpos))
-            {
+            if (!worldIn.isBlockModifiable(playerIn, blockpos)) {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
             }
             boolean flag1 = worldIn.getBlockState(blockpos).getBlock().isReplaceable(worldIn, blockpos);
             BlockPos blockpos1 = flag1 && raytraceresult.sideHit == EnumFacing.UP ? blockpos : blockpos.offset(raytraceresult.sideHit);
-            if (!playerIn.canPlayerEdit(blockpos1, raytraceresult.sideHit, itemStackIn))
-            {
+            if (!playerIn.canPlayerEdit(blockpos1, raytraceresult.sideHit, itemStackIn)) {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
-            }
-            else if (tryPlaceContainedLiquid(playerIn, worldIn, blockpos1))
-            {
+            } else if (tryPlaceContainedLiquid(playerIn, worldIn, blockpos1)) {
                 playerIn.addStat(StatList.func_188057_b(this));
                 return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(ItemsKaoliniteTest.precipitateBucket));
-            }
-            else
-            {
+            } else {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
             }
         }
@@ -73,11 +60,8 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase
         boolean flag = !material.isSolid();
         boolean flag1 = iblockstate.getBlock().isReplaceable(world, pos);
         if (!world.isAirBlock(pos) && !flag && !flag1)
-        {
             return false;
-        }
-        if (!world.isRemote && (flag || flag1) && !material.isLiquid())
-        {
+        if (!world.isRemote && (flag || flag1) && !material.isLiquid()) {
             world.destroyBlock(pos, true);
         }
         SoundEvent soundevent = SoundEvents.item_bucket_empty;
