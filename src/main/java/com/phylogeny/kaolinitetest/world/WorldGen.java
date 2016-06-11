@@ -26,10 +26,9 @@ public class WorldGen implements IWorldGenerator {
         if (!(biome == Biomes.jungle || biome == Biomes.jungleEdge || biome == Biomes.jungleHills))
             return;
         int minLevel = world.getSeaLevel() - 10;
-        boolean oneBelow = random.nextBoolean();
         while (true) {
             if (world.getBlockState(blockPos).getBlock() == Blocks.dirt && world.getBlockState(blockPos).getMaterial() != Material.water) {
-                if (oneBelow && world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
+                if (world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
                     blockPos = blockPos.down();
                 }
                 break;
