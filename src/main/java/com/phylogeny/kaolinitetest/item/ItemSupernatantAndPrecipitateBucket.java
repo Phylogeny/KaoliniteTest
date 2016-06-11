@@ -27,7 +27,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
 
     @Override
     public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
-        RayTraceResult raytraceresult = getMovingObjectPositionFromPlayer(worldIn, playerIn, false);
+        RayTraceResult raytraceresult = rayTrace(worldIn, playerIn, false);
         ActionResult<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onBucketUse(playerIn, worldIn, itemStackIn, raytraceresult);
         if (ret != null)
             return ret;
@@ -45,7 +45,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
             if (!playerIn.canPlayerEdit(blockpos1, raytraceresult.sideHit, itemStackIn)) {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
             } else if (tryPlaceContainedLiquid(playerIn, worldIn, blockpos1)) {
-                playerIn.addStat(StatList.func_188057_b(this));
+            	playerIn.addStat(StatList.getObjectUseStats(this));
                 return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(ItemsKaoliniteTest.bucketPrecipitate));
             } else {
                 return new ActionResult(EnumActionResult.FAIL, itemStackIn);
@@ -64,9 +64,9 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
         if (!world.isRemote && (flag || flag1) && !material.isLiquid()) {
             world.destroyBlock(pos, true);
         }
-        SoundEvent soundevent = SoundEvents.item_bucket_empty;
+        SoundEvent soundevent = SoundEvents.ITEM_BUCKET_EMPTY;
         world.playSound(worldIn, pos, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        world.setBlockState(pos, Blocks.flowing_water.getDefaultState(), 3);
+        world.setBlockState(pos, Blocks.FLOWING_WATER.getDefaultState(), 3);
         return true;
     }
 

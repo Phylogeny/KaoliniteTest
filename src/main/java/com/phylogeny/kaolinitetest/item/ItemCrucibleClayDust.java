@@ -22,7 +22,7 @@ public class ItemCrucibleClayDust extends ItemKaoliniteTestBase {
             int y = MathHelper.floor_double(entityItem.posY);
             int z = MathHelper.floor_double(entityItem.posZ);
             BlockPos pos = new BlockPos(x, y, z);
-            if (world.getBlockState(pos).getMaterial() == Material.water) {
+            if (world.getBlockState(pos).getMaterial() == Material.WATER) {
                 ItemStack stack = entityItem.getEntityItem();
                 if (stack != null) {
                     entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));

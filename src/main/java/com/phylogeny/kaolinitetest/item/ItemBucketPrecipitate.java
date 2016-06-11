@@ -21,7 +21,7 @@ public class ItemBucketPrecipitate extends ItemKaoliniteTestBase {
         if (!worldIn.isRemote) {
             playerIn.dropItem(new ItemStack(ItemsKaoliniteTest.kaoliniteBall), false, false);
         }
-        return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(Items.bucket));
+        return new ActionResult(EnumActionResult.SUCCESS, new ItemStack(Items.BUCKET));
     }
 
 }

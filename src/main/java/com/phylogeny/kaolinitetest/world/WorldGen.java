@@ -10,7 +10,7 @@ import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.fml.common.IWorldGenerator;
@@ -22,13 +22,13 @@ public class WorldGen implements IWorldGenerator {
         BlockPos blockPos = new BlockPos(chunkX * 16 + random.nextInt(16),
                 chunkProvider.provideChunk(chunkX, chunkZ).getTopFilledSegment() + 16,
                 chunkZ * 16 + random.nextInt(16));
-        BiomeGenBase biome = world.getBiomeGenForCoords(blockPos);
-        if (!(biome == Biomes.jungle || biome == Biomes.jungleEdge || biome == Biomes.jungleHills))
+        Biome biome = world.getBiomeGenForCoords(blockPos);
+        if (!(biome == Biomes.JUNGLE || biome == Biomes.JUNGLE_HILLS || biome == Biomes.JUNGLE_EDGE))
             return;
         int minLevel = world.getSeaLevel() - 10;
         while (true) {
-            if (world.getBlockState(blockPos).getBlock() == Blocks.dirt && world.getBlockState(blockPos).getMaterial() != Material.water) {
-                if (world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
+            if (world.getBlockState(blockPos).getBlock() == Blocks.DIRT && world.getBlockState(blockPos).getMaterial() != Material.WATER) {
+                if (world.getBlockState(blockPos.down()).getBlock() == Blocks.DIRT) {
                     blockPos = blockPos.down();
                 }
                 break;
@@ -45,7 +45,7 @@ public class WorldGen implements IWorldGenerator {
                 int iAbs = Math.abs(i);
                 int jAbs = Math.abs(j);
                 if (iAbs + jAbs <= radius && !(iAbs == 0 && jAbs == radius) && !(iAbs == radius && jAbs == 0)
-                		&& (block == Blocks.dirt || block == Blocks.grass || block == Blocks.stone)) {
+                		&& (block == Blocks.DIRT || block == Blocks.GRASS || block == Blocks.STONE)) {
                     world.setBlockState(blockPos2, BlocksKaoliniteTest.kaoliniteBlock.getDefaultState(), 2);
                 }
             }

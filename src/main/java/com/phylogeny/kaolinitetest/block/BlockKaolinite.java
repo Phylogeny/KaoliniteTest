@@ -12,9 +12,9 @@ import net.minecraft.item.Item;
 
 public class BlockKaolinite extends Block {
     public BlockKaolinite() {
-        super(Material.ground);
+        super(Material.GROUND);
         setHardness(0.6F);
-        setStepSound(SoundType.GROUND);
+        setSoundType(SoundType.GROUND);
         setHarvestLevel("shovel", -1);
     }
 

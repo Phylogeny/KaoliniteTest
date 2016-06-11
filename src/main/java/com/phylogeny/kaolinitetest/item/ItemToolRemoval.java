@@ -17,7 +17,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.Biome;
 
 public class ItemToolRemoval extends ItemKaoliniteTestBase
 {
@@ -54,11 +54,11 @@ public class ItemToolRemoval extends ItemKaoliniteTestBase
 				for (int z = (int) area.minZ; z < area.maxZ; z++)
 		    	{
 					BlockPos pos = new BlockPos(x, y, z);
-					BiomeGenBase biome = worldIn.getBiomeGenForCoords(pos);
-					if ((biome == Biomes.jungle || biome == Biomes.jungleEdge || biome == Biomes.jungleHills))
+					Biome biome = worldIn.getBiomeGenForCoords(pos);
+					if ((biome == Biomes.JUNGLE || biome == Biomes.JUNGLE_HILLS || biome == Biomes.JUNGLE_EDGE))
 					{
 						Block block = worldIn.getBlockState(pos).getBlock();
-						if (block != BlocksKaoliniteTest.kaoliniteBlock && (removeGrass || block != Blocks.grass))
+						if (block != BlocksKaoliniteTest.kaoliniteBlock && (removeGrass || block != Blocks.GRASS))
 						{
 							worldIn.setBlockToAir(pos);
 						}

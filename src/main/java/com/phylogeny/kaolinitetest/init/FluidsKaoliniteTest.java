@@ -22,7 +22,7 @@ public class FluidsKaoliniteTest
         Fluid fluid = new Fluid(name, still, flowing);
         kaolinitePrecursor = fluid;
         FluidRegistry.addBucketForFluid(fluid);
-        BlockFluidClassic block = new BlockFluidClassic(fluid, Material.water);
+        BlockFluidClassic block = new BlockFluidClassic(fluid, Material.WATER);
         kaolinitePrecursorBlock = block;
         BlocksKaoliniteTest.registerBlock(block, name);
     }
