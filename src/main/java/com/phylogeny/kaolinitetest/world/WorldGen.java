@@ -18,8 +18,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class WorldGen implements IWorldGenerator {
     @Override
-    public void generate(Random random, int chunkX, int chunkZ, World world,
-            IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
+    public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
         BlockPos blockPos = new BlockPos(chunkX * 16 + random.nextInt(16),
                 chunkProvider.provideChunk(chunkX, chunkZ).getTopFilledSegment() + 16,
                 chunkZ * 16 + random.nextInt(16));
@@ -31,7 +30,7 @@ public class WorldGen implements IWorldGenerator {
         while (true) {
             if (world.getBlockState(blockPos).getBlock() == Blocks.dirt && world.getBlockState(blockPos).getMaterial() != Material.water) {
                 if (oneBelow && world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
-                	blockPos = blockPos.down();
+                    blockPos = blockPos.down();
                 }
                 break;
             }

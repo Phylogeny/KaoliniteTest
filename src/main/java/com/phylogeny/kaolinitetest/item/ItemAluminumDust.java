@@ -32,44 +32,44 @@ public class ItemAluminumDust extends ItemKaoliniteTestBase {
             BlockPos pos = new BlockPos(x, y, z);
             IBlockState state = world.getBlockState(pos);
             if (state.getBlock() == Blocks.water && (state.getValue(BlockLiquid.LEVEL)).intValue() == 0 && entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7) {
-            	List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
+                List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
                 EntityItem silicaEntity = getEntityItem(entities, ItemsKaoliniteTest.silicaDust);
                 if (silicaEntity != null) {
-                	removeStack(entityItem, this);
-                	removeStack(silicaEntity, ItemsKaoliniteTest.silicaDust);
-		            world.setBlockState(pos, FluidsKaoliniteTest.kaolinitePrecursorBlock.getDefaultState(), 3);
+                    removeStack(entityItem, this);
+                    removeStack(silicaEntity, ItemsKaoliniteTest.silicaDust);
+                    world.setBlockState(pos, FluidsKaoliniteTest.kaolinitePrecursorBlock.getDefaultState(), 3);
                 }
             }
         }
         return false;
     }
 
-	private void removeStack(EntityItem entityItem, Item item) {
-		ItemStack stack = getStack(entityItem, item);
-		stack.stackSize -= 7;
-		if (stack.stackSize <= 0) {
-			entityItem.setDead();
-		}
-	}
+    private void removeStack(EntityItem entityItem, Item item) {
+        ItemStack stack = getStack(entityItem, item);
+        stack.stackSize -= 7;
+        if (stack.stackSize <= 0) {
+            entityItem.setDead();
+        }
+    }
 
-	private EntityItem getEntityItem(List<Entity> entities, Item item) {
-		for (Entity entity : entities) {
-		    if (entity != null && entity instanceof EntityItem) {
-		        EntityItem entityItem2 = (EntityItem) entity;
-		        if (getStack(entityItem2, item) != null) {
-		            return entityItem2;
-		        }
-		    }
-		}
-		return null;
-	}
+    private EntityItem getEntityItem(List<Entity> entities, Item item) {
+        for (Entity entity : entities) {
+            if (entity != null && entity instanceof EntityItem) {
+                EntityItem entityItem2 = (EntityItem) entity;
+                if (getStack(entityItem2, item) != null) {
+                    return entityItem2;
+                }
+            }
+        }
+        return null;
+    }
 
-	private ItemStack getStack(EntityItem entityItem, Item item) {
-		ItemStack stack = entityItem.getEntityItem();
-		if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
-			return stack;
-		}
-		return null;
-	}
+    private ItemStack getStack(EntityItem entityItem, Item item) {
+        ItemStack stack = entityItem.getEntityItem();
+        if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
+            return stack;
+        }
+        return null;
+    }
 
 }

@@ -25,8 +25,11 @@ public class RecipeRegistration
             'A', ItemsKaoliniteTest.wetCrucibleClay
         });
         addSmeltingRecipe(ItemsKaoliniteTest.kaoliniteBall, ItemsKaoliniteTest.kaoliniteBrick);
+
+        //TODO require AL furnace at a minimum temp (real min temp is 3000 deg F) and for an extended period of time
         addSmeltingRecipe(ItemsKaoliniteTest.unfiredCrucible, ItemsKaoliniteTest.crucible);
 
+        //TODO require AL furnace at a minimum temp (real min temp is 300 - 400 deg F) and for an extended period of time
         UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
         ItemStack bucketStack = new ItemStack(bucket);
         FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
