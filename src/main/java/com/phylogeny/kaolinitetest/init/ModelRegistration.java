@@ -32,6 +32,7 @@ public class ModelRegistration
         registerItemModel(ItemsKaoliniteTest.wetCrucibleClay);
         registerItemModel(ItemsKaoliniteTest.unfiredCrucible);
         registerItemModel(ItemsKaoliniteTest.crucible);
+        registerItemModel(ItemsKaoliniteTest.removalTool);
     }
 
     private static void registerFluidModel(Block block, Fluid fluid, String name)

@@ -11,6 +11,7 @@ item.kaolinitetest:shard_kaolinite.name=Kaolinite Shard
 item.kaolinitetest:crucible_clay_wet.name=Wet Crucible Clay
 item.kaolinitetest:crucible_unfired.name=Unfired Crucible
 item.kaolinitetest:crucible.name=Crucible
+item.kaolinitetest:tool_removal.name=Removal Tool
 fluid.kaolinite_precursor=Kaolinite Precursor Solution
 tile.kaolinitetest:kaolinite_precursor.name=Kaolinite Precursor Solution
 tile.kaolinitetest:kaolinite_block.name=Kaolinite
