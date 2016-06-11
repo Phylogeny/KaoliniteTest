@@ -81,7 +81,7 @@ public class ItemToolRemoval extends ItemKaoliniteTestBase
 	public void addInformation(ItemStack stack, EntityPlayer player, List tooltip, boolean advanced)
 	{
 		tooltip.add("Removes all blocks in a 60 meter diameter square around you, except kaolinite blocks"
-				+ (shouldRemoveGrass(stack) ? "" : " and grass blocks") + ".");
+				+ (shouldRemoveGrass(stack) ? "" : " and grass blocks") + ". This allows for visualization of kaolinite bed distribution.");
 		tooltip.add("");
 		tooltip.add("Right click to use.");
 		tooltip.add("");
