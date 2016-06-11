@@ -5,6 +5,7 @@ import java.util.Random;
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -28,7 +29,7 @@ public class WorldGen implements IWorldGenerator {
         int minLevel = world.getSeaLevel() - 10;
         boolean oneBelow = random.nextBoolean();
         while (true) {
-            if (world.getBlockState(blockPos).getBlock() == Blocks.dirt) {
+            if (world.getBlockState(blockPos).getBlock() == Blocks.dirt && world.getBlockState(blockPos).getMaterial() != Material.water) {
                 if (oneBelow && world.getBlockState(blockPos.down()).getBlock() == Blocks.dirt) {
                 	blockPos = blockPos.down();
                 }
