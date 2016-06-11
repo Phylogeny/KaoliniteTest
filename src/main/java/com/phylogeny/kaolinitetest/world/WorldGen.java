@@ -39,15 +39,14 @@ public class WorldGen implements IWorldGenerator {
             if (blockPos.getY() < minLevel)
                 return;
         }
-        int margin = 2;
-        int marginSqr = margin * margin;
-        for (int i = blockPos.getX() - margin; i <= blockPos.getX() + margin; i++) {
-            for (int j = blockPos.getZ() - margin; j <= blockPos.getZ() + margin; j++) {
-                int x = i - blockPos.getX();
-                int y = j - blockPos.getZ();
-                BlockPos blockPos2 = new BlockPos(i, blockPos.getY(), j);
+        int radius = 2 + random.nextInt(3);
+        for (int i = -radius; i <= radius; i++) {
+            for (int j = -radius; j <= radius; j++) {
+                BlockPos blockPos2 = new BlockPos(i + blockPos.getX(), blockPos.getY(), j + blockPos.getZ());
                 Block block = world.getBlockState(blockPos2).getBlock();
-                if (x * x + y * y <= marginSqr && (block == Blocks.dirt || block == Blocks.grass)) {
+                int iAbs = Math.abs(i);
+                int jAbs = Math.abs(j);
+                if (iAbs + jAbs <= radius && !(iAbs == 0 && jAbs == radius) && !(iAbs == radius && jAbs == 0) && (block == Blocks.dirt || block == Blocks.grass)) {
                     world.setBlockState(blockPos2, BlocksKaoliniteTest.kaoliniteBlock.getDefaultState(), 2);
                 }
             }
