@@ -1,5 +1,8 @@
 package com.phylogeny.kaolinitetest.proxy;
 
+import net.minecraftforge.common.MinecraftForge;
+
+import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ModelRegistration;
 
 public class ProxyClient extends ProxyCommon
@@ -9,6 +12,7 @@ public class ProxyClient extends ProxyCommon
     {
         super.preInit();
         ModelRegistration.registerModels();
+        MinecraftForge.EVENT_BUS.register(BlocksKaoliniteTest.cauldron);
     }
 
     @Override

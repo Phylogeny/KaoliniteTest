@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.RecipeRegistration;
 
@@ -14,6 +15,10 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -79,19 +84,9 @@ public class BlockModCauldron extends Block
     }
 
     @Override
-    @Deprecated
     @Nullable
-    public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end)
-    {
-        RayTraceResult lookObject = null;
-        double distance = Double.MAX_VALUE;
-        for (int i = 0; i < BOXES.length; i++) {
-            RayTraceResult rayTraceResult = BOXES[i].offset(pos.getX(), pos.getY(), pos.getZ()).calculateIntercept(start, end);
-            if (rayTraceResult != null && start.distanceTo(rayTraceResult.hitVec) < distance) {
-                lookObject = rayTraceResult;
-            }
-        }
-
+    public RayTraceResult collisionRayTrace(IBlockState blockState, World worldIn, BlockPos pos, Vec3d start, Vec3d end) {
+        RayTraceResult lookObject = getExtendedRayTraceResult(start, end, pos);
         if (lookObject != null) {
             return new RayTraceResult(lookObject.hitVec.addVector(pos.getX(), pos.getY(), pos.getZ()), lookObject.sideHit, pos);
         }
@@ -185,15 +180,31 @@ public class BlockModCauldron extends Block
         if (heldItem == null) {
             return true;
         }
-        int i = state.getValue(LEVEL).intValue();
+
         Item item = heldItem.getItem();
+
+        ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
+        if (lookObject != null && lookObject.isLookingAtLogs) {
+            if (item == Items.WATER_BUCKET) {
+                playEmptyBucketSound(worldIn, pos, playerIn);
+                worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
+                if (!playerIn.capabilities.isCreativeMode && !worldIn.isRemote) {
+                    playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
+                }
+            } else if (item == Items.FLINT_AND_STEEL) {
+                worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
+                heldItem.damageItem(1, playerIn);
+            }
+            return true;
+        }
+
+        int i = state.getValue(LEVEL).intValue();
 
         if (item == Items.BUCKET) {
             if (i >= 3) {
                 if (!worldIn.isRemote) {
                     if (!playerIn.capabilities.isCreativeMode) {
                         --heldItem.stackSize;
-
                         if (heldItem.stackSize == 0) {
                             playerIn.setHeldItem(hand, getLiquidBucket(i));
                         } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(i))) {
@@ -218,7 +229,7 @@ public class BlockModCauldron extends Block
                 playerIn.addStat(StatList.CAULDRON_FILLED);
                 this.setWaterLevel(worldIn, pos, state, 3);
             }
-            worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
         } else if (item == Items.GLASS_BOTTLE) {
             if (i > 0 && !worldIn.isRemote) {
@@ -273,7 +284,11 @@ public class BlockModCauldron extends Block
                 return true;
             }
         }
-        return false;
+        return true;
+    }
+
+    private void playEmptyBucketSound(World worldIn, BlockPos pos, EntityPlayer playerIn) {
+        worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
     }
 
     @Override
@@ -328,6 +343,77 @@ public class BlockModCauldron extends Block
     @Override
     public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
         return true;
+    }
+
+    @SubscribeEvent
+    public void drawBlockHighlight(DrawBlockHighlightEvent event) {
+        if(!(event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK && event.getPlayer().worldObj.getBlockState(event.getTarget().getBlockPos()).getBlock() == BlocksKaoliniteTest.cauldron)) {
+            return;
+        }
+        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+        BlockPos pos = event.getTarget().getBlockPos();
+        ExtendedRayTraceResult rayTraceResult = getExtendedRayTraceResultFromPlayer(player, pos);
+        if (rayTraceResult != null) {
+            int i = BOXES.length - 1;
+            if (rayTraceResult.isLookingAtLogs) {
+                event.setCanceled(true);
+                GlStateManager.enableBlend();
+                GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                GlStateManager.color(0.0F, 0.0F, 0.0F, 0.4F);
+                GlStateManager.glLineWidth(2.0F);
+                GlStateManager.disableTexture2D();
+                GlStateManager.depthMask(false);
+
+                double partialTicks = event.getPartialTicks();
+                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
+                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
+                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
+                RenderGlobal.drawSelectionBoundingBox(BOXES[i].offset(pos).expand(0.0625, 0, 0.0625).expandXyz(0.0020000000949949026D).offset(-d0, -d1, -d2));
+
+                GlStateManager.depthMask(true);
+                GlStateManager.enableTexture2D();
+                GlStateManager.disableBlend();
+            }
+        }
+    }
+
+    private ExtendedRayTraceResult getExtendedRayTraceResultFromPlayer(EntityPlayer player, BlockPos pos) {
+        double reach = 5;
+        if (player instanceof EntityPlayerMP) {
+            reach = ((EntityPlayerMP) player).interactionManager.getBlockReachDistance();
+        }
+        Vec3d start = new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
+        Vec3d end = start.add(new Vec3d(player.getLookVec().xCoord * reach, player.getLookVec().yCoord * reach, player.getLookVec().zCoord * reach));
+        ExtendedRayTraceResult rayTraceResult = getExtendedRayTraceResult(start, end, pos);
+        return rayTraceResult;
+    }
+
+    private ExtendedRayTraceResult getExtendedRayTraceResult(Vec3d start, Vec3d end, BlockPos pos) {
+        RayTraceResult lookObject = null;
+        double shortestDistance = Double.MAX_VALUE;
+        int index = 0;
+        for (int i = 0; i < BOXES.length; i++) {
+            AxisAlignedBB box = i == BOXES.length - 1 ? BOXES[i].expand(0.0625, 0, 0.0625) : BOXES[i];
+            RayTraceResult rayTraceResult = box.offset(pos).calculateIntercept(start, end);
+            if (rayTraceResult != null) {
+                double distance = start.distanceTo(rayTraceResult.hitVec);
+                if (distance < shortestDistance) {
+                    lookObject = rayTraceResult;
+                    shortestDistance = distance;
+                    index = i;
+                }
+            }
+        }
+        return lookObject == null ? null : new ExtendedRayTraceResult(lookObject, index == BOXES.length - 1);
+    }
+
+    private static class ExtendedRayTraceResult extends RayTraceResult {
+        private boolean isLookingAtLogs;
+
+        public ExtendedRayTraceResult(RayTraceResult rayTraceResult, boolean isLookingAtLogs) {
+            super(rayTraceResult.hitVec, rayTraceResult.sideHit, rayTraceResult.getBlockPos());
+            this.isLookingAtLogs = isLookingAtLogs;
+        }
     }
 
 }
