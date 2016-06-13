@@ -30,16 +30,21 @@ public class RecipeRegistration
         addSmeltingRecipe(ItemsKaoliniteTest.unfiredCrucible, ItemsKaoliniteTest.crucible);
 
         //TODO require AL furnace at a minimum temp (real min temp is 300 - 400 deg F) and for an extended period of time
-        UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
-        ItemStack bucketStack = new ItemStack(bucket);
-        FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
-        bucket.fill(bucketStack, fluidStack, true);
-        GameRegistry.addSmelting(bucketStack, new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
+        GameRegistry.addSmelting(getKaolinitePrecursorBucketStack(), new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
 
         //this is just for demonstration - in AL, kaolinite bricks/shards will be pulverized, not crafted
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 7, ItemsKaoliniteTest.kaoliniteBrick);
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 1, ItemsKaoliniteTest.kaoliniteShard);
     }
+
+	public static ItemStack getKaolinitePrecursorBucketStack()
+	{
+		UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
+        ItemStack bucketStack = new ItemStack(bucket);
+        FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
+        bucket.fill(bucketStack, fluidStack, true);
+		return bucketStack;
+	}
 
     private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)
     {

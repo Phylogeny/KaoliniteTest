@@ -1,6 +1,7 @@
 package com.phylogeny.kaolinitetest.init;
 
 import com.phylogeny.kaolinitetest.block.BlockKaolinite;
+import com.phylogeny.kaolinitetest.block.BlockModCauldron;
 import com.phylogeny.kaolinitetest.client.creativetab.CreativeTabKaoliniteTest;
 
 import net.minecraft.block.Block;
@@ -10,10 +11,12 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class BlocksKaoliniteTest
 {
     public static Block kaoliniteBlock = new BlockKaolinite();
+    public static Block cauldron = new BlockModCauldron();
 
     public static void registerBlocks()
     {
         registerBlock(kaoliniteBlock, "kaolinite_block");
+        registerBlock(cauldron, "cauldron_block");
     }
 
     public static void registerBlock(Block block, String name)

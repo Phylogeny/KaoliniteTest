@@ -44,7 +44,7 @@ public class ItemAluminumDust extends ItemKaoliniteTestBase {
         return false;
     }
 
-    private void removeStack(EntityItem entityItem, Item item) {
+    public static void removeStack(EntityItem entityItem, Item item) {
         ItemStack stack = getStack(entityItem, item);
         stack.stackSize -= 7;
         if (stack.stackSize <= 0) {
@@ -52,7 +52,7 @@ public class ItemAluminumDust extends ItemKaoliniteTestBase {
         }
     }
 
-    private EntityItem getEntityItem(List<Entity> entities, Item item) {
+    public static EntityItem getEntityItem(List<Entity> entities, Item item) {
         for (Entity entity : entities) {
             if (entity != null && entity instanceof EntityItem) {
                 EntityItem entityItem2 = (EntityItem) entity;
@@ -64,7 +64,7 @@ public class ItemAluminumDust extends ItemKaoliniteTestBase {
         return null;
     }
 
-    private ItemStack getStack(EntityItem entityItem, Item item) {
+    private static ItemStack getStack(EntityItem entityItem, Item item) {
         ItemStack stack = entityItem.getEntityItem();
         if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
             return stack;

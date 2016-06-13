@@ -53,7 +53,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
         }
     }
 
-    public boolean tryPlaceContainedLiquid(EntityPlayer worldIn, World world, BlockPos pos)
+    public boolean tryPlaceContainedLiquid(EntityPlayer player, World world, BlockPos pos)
     {
         IBlockState iblockstate = world.getBlockState(pos);
         Material material = iblockstate.getMaterial();
@@ -64,8 +64,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
         if (!world.isRemote && (flag || flag1) && !material.isLiquid()) {
             world.destroyBlock(pos, true);
         }
-        SoundEvent soundevent = SoundEvents.ITEM_BUCKET_EMPTY;
-        world.playSound(worldIn, pos, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        world.playSound(player, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
         world.setBlockState(pos, Blocks.FLOWING_WATER.getDefaultState(), 3);
         return true;
     }
