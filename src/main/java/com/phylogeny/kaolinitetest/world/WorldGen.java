@@ -45,7 +45,7 @@ public class WorldGen implements IWorldGenerator {
                 int iAbs = Math.abs(i);
                 int jAbs = Math.abs(j);
                 if (iAbs + jAbs <= radius && !(iAbs == 0 && jAbs == radius) && !(iAbs == radius && jAbs == 0)
-                		&& (block == Blocks.DIRT || block == Blocks.GRASS || block == Blocks.STONE)) {
+                        && (block == Blocks.DIRT || block == Blocks.GRASS || block == Blocks.STONE)) {
                     world.setBlockState(blockPos2, BlocksKaoliniteTest.kaoliniteBlock.getDefaultState(), 2);
                 }
             }

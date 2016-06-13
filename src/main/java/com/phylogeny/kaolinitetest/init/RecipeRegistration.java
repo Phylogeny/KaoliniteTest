@@ -37,14 +37,14 @@ public class RecipeRegistration
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 1, ItemsKaoliniteTest.kaoliniteShard);
     }
 
-	public static ItemStack getKaolinitePrecursorBucketStack()
-	{
-		UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
+    public static ItemStack getKaolinitePrecursorBucketStack()
+    {
+        UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
         ItemStack bucketStack = new ItemStack(bucket);
         FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
         bucket.fill(bucketStack, fluidStack, true);
-		return bucketStack;
-	}
+        return bucketStack;
+    }
 
     private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)
     {
