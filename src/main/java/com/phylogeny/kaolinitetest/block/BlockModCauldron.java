@@ -38,27 +38,32 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.DrawBlockHighlightEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockModCauldron extends Block
 {
     public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 4);
-    protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0, 0.125, 0.1875, 0.0625, 0.25);
-    protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.1875, 0, 0.125, 0.25, 0.0625, 0.1875);
-    protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_1 = new AxisAlignedBB(0.8125, 0, 0.125, 0.875, 0.0625, 0.25);
-    protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_2 = new AxisAlignedBB(0.75, 0, 0.125, 0.8125, 0.0625, 0.1875);
-    protected static final AxisAlignedBB AABB_LEG_3_SEGMENT_1 = new AxisAlignedBB(0.125, 0, 0.75, 0.1875, 0.0625, 0.875);
-    protected static final AxisAlignedBB AABB_LEG_3_SEGMENT_2 = new AxisAlignedBB(0.1875, 0, 0.8125, 0.25, 0.0625, 0.875);
-    protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_1 = new AxisAlignedBB(0.8125, 0, 0.75, 0.875, 0.0625, 0.875);
-    protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_2 = new AxisAlignedBB(0.75, 0, 0.8125, 0.8125, 0.0625, 0.875);
-    protected static final AxisAlignedBB AABB_BASE = new AxisAlignedBB(0.125, 0.0625, 0.125, 0.875, 0.125, 0.875);
-    protected static final AxisAlignedBB AABB_WALL_1 = new AxisAlignedBB(0.125, 0.125, 0.125, 0.875, 0.6875, 0.1875);
-    protected static final AxisAlignedBB AABB_WALL_2 = new AxisAlignedBB(0.125, 0.125, 0.8125, 0.875, 0.6875, 0.875);
-    protected static final AxisAlignedBB AABB_WALL_3 = new AxisAlignedBB(0.125, 0.125, 0.1875, 0.1875, 0.6875, 0.875);
-    protected static final AxisAlignedBB AABB_WALL_4 = new AxisAlignedBB(0.8125, 0.125, 0.1875, 0.875, 0.6875, 0.875);
-    protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2,
-        AABB_LEG_3_SEGMENT_1, AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4};
-    protected static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.125, 0.1875, 0.8125, 0.625, 0.8125);
-    protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0, 0.125, 0.875, 0.6875, 0.875);
+    protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.1875, 0.1875, 0.25, 0.25);
+    protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.25, 0.25, 0.1875);
+    protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.75, 0.1875, 0.25, 0.8125);
+    protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.8125, 0.25, 0.25, 0.875);
+    protected static final AxisAlignedBB AABB_LEG_3_SEGMENT_1 = new AxisAlignedBB(0.8125, 0.1875, 0.75, 0.875, 0.25, 0.8125);
+    protected static final AxisAlignedBB AABB_LEG_3_SEGMENT_2 = new AxisAlignedBB(0.75, 0.1875, 0.8125, 0.875, 0.25, 0.875);
+    protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_1 = new AxisAlignedBB(0.8125, 0.1875, 0.1875, 0.875, 0.25, 0.25);
+    protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_2 = new AxisAlignedBB(0.75, 0.1875, 0.125, 0.875, 0.25, 0.1875);
+    protected static final AxisAlignedBB AABB_BASE = new AxisAlignedBB(0.125, 0.25, 0.125, 0.875, 0.3125, 0.875);
+    protected static final AxisAlignedBB AABB_WALL_1 = new AxisAlignedBB(0.125, 0.3125, 0.1875, 0.1875, 0.875, 0.875);
+    protected static final AxisAlignedBB AABB_WALL_2 = new AxisAlignedBB(0.8125, 0.3125, 0.125, 0.875, 0.875, 0.8125);
+    protected static final AxisAlignedBB AABB_WALL_3 = new AxisAlignedBB(0.125, 0.3125, 0.125, 0.8125, 0.875, 0.1875);
+    protected static final AxisAlignedBB AABB_WALL_4 = new AxisAlignedBB(0.1875, 0.3125, 0.8125, 0.875, 0.875, 0.875);
+    protected static final AxisAlignedBB AABB_LOG_1 = new AxisAlignedBB(0.40625, -0.000625, 0.0625, 0.59375, 0.186875, 0.9375);
+    protected static final AxisAlignedBB AABB_LOG_3 = new AxisAlignedBB(0.0625, 0.0, 0.375, 0.9375, 0.1875, 0.5625);
+    protected static final AxisAlignedBB AABB_WOOD = new AxisAlignedBB(0.125, 0.0, 0.125, 0.875, 0.1875, 0.875);
+    protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2, AABB_LEG_3_SEGMENT_1,
+        AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4, AABB_WOOD};
+    protected static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
+    protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.875, 0.875, 0.875);
 
     public BlockModCauldron()
     {
