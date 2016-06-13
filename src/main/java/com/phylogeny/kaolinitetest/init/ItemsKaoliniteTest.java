@@ -1,6 +1,5 @@
 package com.phylogeny.kaolinitetest.init;
 
-import com.phylogeny.kaolinitetest.item.ItemAluminumDust;
 import com.phylogeny.kaolinitetest.item.ItemCrucibleClayDust;
 import com.phylogeny.kaolinitetest.item.ItemKaoliniteTestBase;
 import com.phylogeny.kaolinitetest.item.ItemBucketPrecipitate;
@@ -17,7 +16,7 @@ public class ItemsKaoliniteTest
 
     public static void itemsInit()
     {
-        aluminumDust = registerItem(new ItemAluminumDust("dust_aluminum"));
+        aluminumDust = registerItem("dust_aluminum");
         silicaDust = registerItem("dust_silica");
         kaoliniteDust = registerItem("dust_kaolinite");
         crucibleClayDust = registerItem(new ItemCrucibleClayDust("dust_crucible_clay"));

@@ -6,7 +6,6 @@ import javax.annotation.Nullable;
 
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.RecipeRegistration;
-import com.phylogeny.kaolinitetest.item.ItemAluminumDust;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
@@ -145,10 +144,10 @@ public class BlockModCauldron extends Block
 			        		{
 			        			List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
 			        			Item otherDustItem = stack.getItem() == ItemsKaoliniteTest.aluminumDust ? ItemsKaoliniteTest.silicaDust : ItemsKaoliniteTest.aluminumDust;
-				                EntityItem otherDustEntity = ItemAluminumDust.getEntityItem(entities, otherDustItem);
+				                EntityItem otherDustEntity = getEntityItem(entities, otherDustItem);
 				                if (otherDustEntity != null) {
-				                	ItemAluminumDust.removeStack(entityItem, stack.getItem());
-				                	ItemAluminumDust.removeStack(otherDustEntity, otherDustItem);
+				                	removeStack(entityItem, stack.getItem());
+				                	removeStack(otherDustEntity, otherDustItem);
 				                	this.setWaterLevel(worldIn, pos, state, 4);
 				                }
 			        		}
@@ -162,6 +161,34 @@ public class BlockModCauldron extends Block
 		    }
 	    }
 	}
+
+	private void removeStack(EntityItem entityItem, Item item) {
+        ItemStack stack = getStack(entityItem, item);
+        stack.stackSize -= 7;
+        if (stack.stackSize <= 0) {
+            entityItem.setDead();
+        }
+    }
+
+	private EntityItem getEntityItem(List<Entity> entities, Item item) {
+        for (Entity entity : entities) {
+            if (entity != null && entity instanceof EntityItem) {
+                EntityItem entityItem2 = (EntityItem) entity;
+                if (getStack(entityItem2, item) != null) {
+                    return entityItem2;
+                }
+            }
+        }
+        return null;
+    }
+
+	private ItemStack getStack(EntityItem entityItem, Item item) {
+        ItemStack stack = entityItem.getEntityItem();
+        if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
+            return stack;
+        }
+        return null;
+    }
 
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
