@@ -284,7 +284,7 @@ public class BlockModCauldron extends Block
                 return true;
             }
         }
-        return true;
+        return false;
     }
 
     private void playEmptyBucketSound(World worldIn, BlockPos pos, EntityPlayer playerIn) {
