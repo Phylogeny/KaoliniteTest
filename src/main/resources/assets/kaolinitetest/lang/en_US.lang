@@ -15,4 +15,5 @@ item.kaolinitetest:tool_removal.name=Removal Tool
 fluid.kaolinite_precursor=Kaolinite Precursor Solution
 tile.kaolinitetest:kaolinite_precursor.name=Kaolinite Precursor Solution
 tile.kaolinitetest:kaolinite_block.name=Kaolinite
-tile.kaolinitetest:cauldron_block.name=Cauldron
+tile.kaolinitetest:cauldron_block_lit.name=Lit Cauldron
+tile.kaolinitetest:cauldron_block_unlit.name=Cauldron

@@ -1,9 +1,13 @@
 package com.phylogeny.kaolinitetest.block;
 
 import java.util.List;
+import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeLarge;
+import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
+import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSplash;
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.RecipeRegistration;
@@ -17,6 +21,8 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.particle.IParticleFactory;
+import net.minecraft.client.particle.ParticleFlame;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.Entity;
@@ -48,6 +54,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockModCauldron extends Block
 {
+    private final boolean isBurning;
     public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 4);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.1875, 0.1875, 0.25, 0.25);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.25, 0.25, 0.1875);
@@ -70,10 +77,10 @@ public class BlockModCauldron extends Block
     protected static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
     protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.875, 0.875, 0.875);
 
-    public BlockModCauldron()
-    {
+    public BlockModCauldron(boolean isBurning) {
         super(Material.IRON, MapColor.STONE);
         this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(0)));
+        this.isBurning = isBurning;
     }
 
     @Override
@@ -109,13 +116,28 @@ public class BlockModCauldron extends Block
     }
 
     @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        super.breakBlock(worldIn, pos, state);
+        allowItemPickup(worldIn, pos);
+    }
+
+    private void allowItemPickup(World worldIn, BlockPos pos) {
+        for (EntityItem entityItem : worldIn.getEntitiesWithinAABB(EntityItem.class, FULL_BLOCK_AABB.offset(pos))) {
+            ItemStack stack = entityItem.getEntityItem();
+            if (stack != null && stack.getItem() != null && (stack.getItem() == ItemsKaoliniteTest.aluminumDust || stack.getItem() == ItemsKaoliniteTest.silicaDust)) {
+                entityItem.setPickupDelay(5);
+            }
+        }
+    }
+
+    @Override
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
         int level = state.getValue(LEVEL).intValue();
         int actualLevel = Math.min(level, 3);
         double waterHeight = 0.125 + (actualLevel < 2 ? actualLevel * 0.125 : 0.125 + (actualLevel - 1) * 0.1875);
-        AxisAlignedBB waterbox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
+        AxisAlignedBB waterBox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
 
-        if (!worldIn.isRemote && entityIn.getEntityBoundingBox().intersectsWith(waterbox.offset(pos.getX(), pos.getY(), pos.getZ()))) {
+        if (!worldIn.isRemote && entityIn.getEntityBoundingBox().intersectsWith(waterBox.offset(pos))) {
             if (entityIn.isBurning()) {
                 entityIn.extinguish();
             }
@@ -126,18 +148,29 @@ public class BlockModCauldron extends Block
                 if (stack != null && stack.getItem() != null) {
                     if (stack.getItem() == ItemsKaoliniteTest.aluminumDust || stack.getItem() == ItemsKaoliniteTest.silicaDust) {
                         if (level == 3) {
-                            entityItem.setPickupDelay(5);
+                            entityItem.setInfinitePickupDelay();
                             entityItem.lifespan = 6000;
-                            if (entityItem.getEntityItem() != null && entityItem.getEntityItem().stackSize >= 7) {
-                                List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
-                                Item otherDustItem = stack.getItem() == ItemsKaoliniteTest.aluminumDust ? ItemsKaoliniteTest.silicaDust : ItemsKaoliniteTest.aluminumDust;
-                                EntityItem otherDustEntity = getEntityItem(entities, otherDustItem);
-                                if (otherDustEntity != null) {
-                                    removeStack(entityItem, stack.getItem());
-                                    removeStack(otherDustEntity, otherDustItem);
-                                    this.setWaterLevel(worldIn, pos, state, 4);
+                            if (stack.stackSize > 1) {
+                                EntityItem entityItem2;
+                                int n = stack.stackSize - 1;
+                                stack.stackSize = 1;
+                                for (int i = 0; i < n; i++) {
+                                    entityItem2 = new EntityItem(worldIn, entityItem.posX, entityItem.posY, entityItem.posZ, stack.copy());
+                                    entityItem2.setInfinitePickupDelay();
+                                    entityItem2.motionY = entityItem.motionY;
+                                    worldIn.spawnEntityInWorld(entityItem2);
                                 }
                             }
+//                            if (stack.stackSize >= 7) {
+//                                List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
+//                                Item otherDustItem = stack.getItem() == ItemsKaoliniteTest.aluminumDust ? ItemsKaoliniteTest.silicaDust : ItemsKaoliniteTest.aluminumDust;
+//                                EntityItem otherDustEntity = getEntityItem(entities, otherDustItem);
+//                                if (otherDustEntity != null) {
+//                                    removeStack(entityItem, stack.getItem());
+//                                    removeStack(otherDustEntity, otherDustItem);
+//                                    this.setWaterLevel(worldIn, pos, state, 4);
+//                                }
+//                            }
                         }
                     } else if (stack.getItem() == ItemsKaoliniteTest.crucibleClayDust) {
                         entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));
@@ -182,23 +215,32 @@ public class BlockModCauldron extends Block
         }
 
         Item item = heldItem.getItem();
+        int i = state.getValue(LEVEL).intValue();
 
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
         if (lookObject != null && lookObject.isLookingAtLogs) {
             if (item == Items.WATER_BUCKET) {
                 playEmptyBucketSound(worldIn, pos, playerIn);
                 worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
-                if (!playerIn.capabilities.isCreativeMode && !worldIn.isRemote) {
-                    playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
+                spawnParticlesForLogs(worldIn, pos, lookObject, 25, new ParticleCauldronSmokeLarge.Factory(), new ParticleCauldronSplash.Factory(), new ParticleCauldronSplash.Factory(), new ParticleCauldronSplash.Factory());
+                if (!worldIn.isRemote) {
+                    if (!playerIn.capabilities.isCreativeMode) {
+                        playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
+                    }
+                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_unlit.getDefaultState().withProperty(LEVEL, Integer.valueOf(i)));
                 }
+                return true;
             } else if (item == Items.FLINT_AND_STEEL) {
                 worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
+                spawnParticlesForLogs(worldIn, pos, lookObject, 16, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory());
                 heldItem.damageItem(1, playerIn);
+                if (!worldIn.isRemote) {
+                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_lit.getDefaultState().withProperty(LEVEL, Integer.valueOf(i)));
+                }
+                return true;
             }
-            return true;
+            return false;
         }
-
-        int i = state.getValue(LEVEL).intValue();
 
         if (item == Items.BUCKET) {
             if (i >= 3) {
@@ -287,6 +329,47 @@ public class BlockModCauldron extends Block
         return false;
     }
 
+    private void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
+        if (!worldIn.isRemote)
+            return;
+        Vec3d particlePos;
+        if (lookObject != null) {
+            Vec3d hit = lookObject.hitVec;
+            particlePos = new Vec3d(hit.xCoord + Math.random() * 0.01, hit.yCoord + Math.random() * 0.01, hit.zCoord + Math.random() * 0.01);
+            for (IParticleFactory particleFactory : particleFactories) {
+                spawnParticle(worldIn, particlePos, particleFactory);
+            }
+        }
+        Vec3d logXZCenter = new Vec3d(0.5, 0, 0.5);
+        Vec3d particleXZPos;
+        for (int k = 0; k < particleCount; ++k) {
+            while (true) {
+                particleXZPos = new Vec3d(Math.random(), 0, Math.random());
+                if (particleXZPos.distanceTo(logXZCenter) <= 0.4375) {
+                    particlePos = new Vec3d(pos.getX() + particleXZPos.xCoord, pos.getY() + Math.random() * (0.0625 - 0.0625) + 0.0625, pos.getZ() + particleXZPos.zCoord).addVector(0, 0.0625 * 2, 0);
+                    for (IParticleFactory particleFactory : particleFactories) {
+                        spawnParticle(worldIn, particlePos, particleFactory);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void spawnParticle(World worldIn, Vec3d particlePos, IParticleFactory particleFactory) {
+        Minecraft.getMinecraft().effectRenderer.addEffect(particleFactory.getEntityFX(0, worldIn, particlePos.xCoord, particlePos.yCoord, particlePos.zCoord, 0.0D, 0.0D, 0.0D, new int[0]));
+    }
+
+    @Override
+    public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+        if (isBurning) {
+            if (rand.nextDouble() < 0.1D) {
+                worldIn.playSound(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+            }
+            spawnParticlesForLogs(worldIn, pos, null, 5, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory(), new ParticleCauldronSmokeNormal.Factory(), new ParticleCauldronSmokeNormal.Factory());
+        }
+    }
+
     private void playEmptyBucketSound(World worldIn, BlockPos pos, EntityPlayer playerIn) {
         worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
     }
@@ -313,6 +396,8 @@ public class BlockModCauldron extends Block
     public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level) {
         worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 4))), 2);
         worldIn.updateComparatorOutputLevel(pos, this);
+        if (level != 3)
+            allowItemPickup(worldIn, pos);
     }
 
     @Override
@@ -347,7 +432,7 @@ public class BlockModCauldron extends Block
 
     @SubscribeEvent
     public void drawBlockHighlight(DrawBlockHighlightEvent event) {
-        if(!(event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK && event.getPlayer().worldObj.getBlockState(event.getTarget().getBlockPos()).getBlock() == BlocksKaoliniteTest.cauldron)) {
+        if(!(event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK && event.getPlayer().worldObj.getBlockState(event.getTarget().getBlockPos()).getBlock() instanceof BlockModCauldron)) {
             return;
         }
         EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;

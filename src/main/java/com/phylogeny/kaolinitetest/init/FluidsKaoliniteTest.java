@@ -24,7 +24,7 @@ public class FluidsKaoliniteTest
         FluidRegistry.addBucketForFluid(fluid);
         BlockFluidClassic block = new BlockFluidClassic(fluid, Material.WATER);
         kaolinitePrecursorBlock = block;
-        BlocksKaoliniteTest.registerBlock(block, name);
+        BlocksKaoliniteTest.registerBlock(block, name, true);
     }
 
 }

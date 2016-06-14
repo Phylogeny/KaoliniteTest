@@ -10,7 +10,9 @@
 		"normal": [ {
 			"model": "kaolinitetest:cauldron/cauldron_block_empty"
 		} ],
-		"inventory": [ { } ],
+		"inventory": [ {
+			"model": "kaolinitetest:cauldron/cauldron_block_empty"
+		} ],
 		"level=0": [ { } ],
         "level=1": [ {
 			"submodel": "kaolinitetest:cauldron/cauldron_water_level_1"

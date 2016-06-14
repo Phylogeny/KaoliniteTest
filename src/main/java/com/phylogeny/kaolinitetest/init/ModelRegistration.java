@@ -20,7 +20,8 @@ public class ModelRegistration
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock,
                 FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
         registerBlockModel(BlocksKaoliniteTest.kaoliniteBlock);
-        registerBlockModel(BlocksKaoliniteTest.cauldron);
+        registerBlockModel(BlocksKaoliniteTest.cauldron_lit);
+        registerBlockModel(BlocksKaoliniteTest.cauldron_unlit);
         registerItemModel(ItemsKaoliniteTest.aluminumDust);
         registerItemModel(ItemsKaoliniteTest.silicaDust);
         registerItemModel(ItemsKaoliniteTest.kaoliniteDust);

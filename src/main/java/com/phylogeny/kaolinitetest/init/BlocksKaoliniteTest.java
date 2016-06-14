@@ -11,20 +11,24 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class BlocksKaoliniteTest
 {
     public static Block kaoliniteBlock = new BlockKaolinite();
-    public static Block cauldron = new BlockModCauldron();
+    public static Block cauldron_lit = new BlockModCauldron(true);
+    public static Block cauldron_unlit = new BlockModCauldron(false);
 
     public static void registerBlocks()
     {
-        registerBlock(kaoliniteBlock, "kaolinite_block");
-        registerBlock(cauldron, "cauldron_block");
+        registerBlock(kaoliniteBlock, "kaolinite_block", true);
+        registerBlock(cauldron_lit, "cauldron_block_lit", false);
+        registerBlock(cauldron_unlit, "cauldron_block_unlit", true);
     }
 
-    public static void registerBlock(Block block, String name)
+    public static void registerBlock(Block block, String name, boolean setCreativeTab)
     {
         block.setRegistryName(name);
         block.setUnlocalizedName(block.getRegistryName().toString());
-        block.setCreativeTab(CreativeTabKaoliniteTest.CREATIVE_TAB);
+        if (setCreativeTab)
+            block.setCreativeTab(CreativeTabKaoliniteTest.CREATIVE_TAB);
         GameRegistry.register(block);
         GameRegistry.register((new ItemBlock(block)).setRegistryName(block.getRegistryName()));
     }
+
 }

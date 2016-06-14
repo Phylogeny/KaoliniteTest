@@ -12,7 +12,7 @@ public class ProxyClient extends ProxyCommon
     {
         super.preInit();
         ModelRegistration.registerModels();
-        MinecraftForge.EVENT_BUS.register(BlocksKaoliniteTest.cauldron);
+        MinecraftForge.EVENT_BUS.register(BlocksKaoliniteTest.cauldron_lit);
     }
 
     @Override
