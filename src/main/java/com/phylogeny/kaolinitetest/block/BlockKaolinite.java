@@ -32,5 +32,4 @@ public class BlockKaolinite extends Block {
     public int quantityDropped(Random random) {
         return 3 + random.nextInt(2);
     }
-
 }

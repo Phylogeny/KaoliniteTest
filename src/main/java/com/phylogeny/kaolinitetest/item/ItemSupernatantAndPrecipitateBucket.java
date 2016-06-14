@@ -52,8 +52,7 @@ public class ItemSupernatantAndPrecipitateBucket extends ItemKaoliniteTestBase {
         }
     }
 
-    public boolean tryPlaceContainedLiquid(EntityPlayer player, World world, BlockPos pos)
-    {
+    public boolean tryPlaceContainedLiquid(EntityPlayer player, World world, BlockPos pos) {
         IBlockState iblockstate = world.getBlockState(pos);
         Material material = iblockstate.getMaterial();
         boolean flag = !material.isSolid();
