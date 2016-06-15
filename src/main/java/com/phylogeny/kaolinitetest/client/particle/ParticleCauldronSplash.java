@@ -30,6 +30,8 @@ public class ParticleCauldronSplash extends ParticleSplash {
             if (y >= 0.1875 && x <= 0.875 && x >= 0.125 && z <= 0.875 && z >= 0.125) {
                 isCollided = true;
                 motionY = 0;
+                motionX *= 1.1;
+                motionZ *= 1.1;
             }
         }
 
