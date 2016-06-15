@@ -3,7 +3,7 @@
   "modid": "KaoliniteTest",
   "name": "Kaolinite Test",
   "description": "This is a test for the Applied Logistics mod of the mechanics/items/processes involved in converting aluminum and silica fist into kaolinite and then into a crucible.",
-  "version": "1.9.4-1.9.0",
+  "version": "1.9.4-1.10.0",
   "mcversion": "1.9",
   "url": "",
   "updateUrl": "",
