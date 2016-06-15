@@ -80,6 +80,8 @@ public class BlockModCauldron extends Block
     public BlockModCauldron(boolean isBurning) {
         super(Material.IRON, MapColor.STONE);
         this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(0)));
+        if (isBurning)
+            setLightLevel(0.875F);
         this.isBurning = isBurning;
     }
 
@@ -215,42 +217,48 @@ public class BlockModCauldron extends Block
         }
 
         Item item = heldItem.getItem();
-        int i = state.getValue(LEVEL).intValue();
+        int level = state.getValue(LEVEL).intValue();
 
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
         if (lookObject != null && lookObject.isLookingAtLogs) {
             if (item == Items.WATER_BUCKET) {
                 playEmptyBucketSound(worldIn, pos, playerIn);
-                worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
-                spawnParticlesForLogs(worldIn, pos, lookObject, 25, new ParticleCauldronSmokeLarge.Factory(), new ParticleCauldronSplash.Factory(), new ParticleCauldronSplash.Factory(), new ParticleCauldronSplash.Factory());
+                int n = isBurning ? 4 : 3;
+                IParticleFactory[] particles = new IParticleFactory[n];
+                for (int i = 0; i < 3; i++) {
+                    particles[i] = new ParticleCauldronSplash.Factory();
+                }
+                if (isBurning) {
+                    particles[3] = new ParticleCauldronSmokeLarge.Factory();
+                    worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
+                }
+                spawnParticlesForLogs(worldIn, pos, lookObject, 25, particles);
                 if (!worldIn.isRemote) {
                     if (!playerIn.capabilities.isCreativeMode) {
                         playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
                     }
-                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_unlit.getDefaultState().withProperty(LEVEL, Integer.valueOf(i)));
+                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_unlit.getDefaultState().withProperty(LEVEL, Integer.valueOf(level)));
                 }
-                return true;
             } else if (item == Items.FLINT_AND_STEEL) {
                 worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
                 spawnParticlesForLogs(worldIn, pos, lookObject, 16, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory());
                 heldItem.damageItem(1, playerIn);
                 if (!worldIn.isRemote) {
-                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_lit.getDefaultState().withProperty(LEVEL, Integer.valueOf(i)));
+                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_lit.getDefaultState().withProperty(LEVEL, Integer.valueOf(level)));
                 }
-                return true;
             }
-            return false;
+            return true;
         }
 
         if (item == Items.BUCKET) {
-            if (i >= 3) {
+            if (level >= 3) {
                 if (!worldIn.isRemote) {
                     if (!playerIn.capabilities.isCreativeMode) {
                         --heldItem.stackSize;
                         if (heldItem.stackSize == 0) {
-                            playerIn.setHeldItem(hand, getLiquidBucket(i));
-                        } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(i))) {
-                            playerIn.dropItem(getLiquidBucket(i), false);
+                            playerIn.setHeldItem(hand, getLiquidBucket(level));
+                        } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(level))) {
+                            playerIn.dropItem(getLiquidBucket(level), false);
                         }
                     }
                     playerIn.addStat(StatList.CAULDRON_USED);
@@ -261,10 +269,10 @@ public class BlockModCauldron extends Block
             return true;
         }
 
-        if (i > 3) return true;
+        if (level > 3) return true;
 
         if (item == Items.WATER_BUCKET || item == ItemsKaoliniteTest.supernatantAndPrecipitateBucket) {
-            if (i < 3 && !worldIn.isRemote) {
+            if (level < 3 && !worldIn.isRemote) {
                 if (!playerIn.capabilities.isCreativeMode) {
                     playerIn.setHeldItem(hand, new ItemStack(item == Items.WATER_BUCKET ? Items.BUCKET : ItemsKaoliniteTest.bucketPrecipitate));
                 }
@@ -274,7 +282,7 @@ public class BlockModCauldron extends Block
             playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
         } else if (item == Items.GLASS_BOTTLE) {
-            if (i > 0 && !worldIn.isRemote) {
+            if (level > 0 && !worldIn.isRemote) {
                 if (!playerIn.capabilities.isCreativeMode) {
                     ItemStack itemstack1 = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), PotionTypes.WATER);
                     playerIn.addStat(StatList.CAULDRON_USED);
@@ -287,21 +295,21 @@ public class BlockModCauldron extends Block
                         ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
                     }
                 }
-                this.setWaterLevel(worldIn, pos, state, i - 1);
+                this.setWaterLevel(worldIn, pos, state, level - 1);
             }
             return true;
         } else {
-            if (i > 0 && item instanceof ItemArmor) {
+            if (level > 0 && item instanceof ItemArmor) {
                 ItemArmor itemarmor = (ItemArmor)item;
                 if (itemarmor.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && itemarmor.hasColor(heldItem) && !worldIn.isRemote) {
                     itemarmor.removeColor(heldItem);
-                    this.setWaterLevel(worldIn, pos, state, i - 1);
+                    this.setWaterLevel(worldIn, pos, state, level - 1);
                     playerIn.addStat(StatList.ARMOR_CLEANED);
                     return true;
                 }
             }
 
-            if (i > 0 && item instanceof ItemBanner) {
+            if (level > 0 && item instanceof ItemBanner) {
                 if (TileEntityBanner.getPatterns(heldItem) > 0 && !worldIn.isRemote) {
                     ItemStack itemstack = heldItem.copy();
                     itemstack.stackSize = 1;
@@ -320,7 +328,7 @@ public class BlockModCauldron extends Block
                     }
 
                     if (!playerIn.capabilities.isCreativeMode) {
-                        this.setWaterLevel(worldIn, pos, state, i - 1);
+                        this.setWaterLevel(worldIn, pos, state, level - 1);
                     }
                 }
                 return true;
