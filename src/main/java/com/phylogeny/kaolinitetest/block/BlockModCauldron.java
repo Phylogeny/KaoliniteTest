@@ -5,6 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import com.phylogeny.kaolinitetest.client.helper.ClientHelper;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeLarge;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSplash;
@@ -19,8 +20,6 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.ParticleFlame;
 import net.minecraft.client.renderer.GlStateManager;
@@ -39,6 +38,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntityBanner;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
@@ -51,6 +51,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockModCauldron extends Block
 {
@@ -74,7 +76,7 @@ public class BlockModCauldron extends Block
     protected static final AxisAlignedBB AABB_WOOD = new AxisAlignedBB(0.125, 0.0, 0.125, 0.875, 0.1875, 0.875);
     protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2, AABB_LEG_3_SEGMENT_1,
         AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4, AABB_WOOD};
-    protected static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
+    public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
     protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.875, 0.875, 0.875);
 
     public BlockModCauldron(boolean isBurning) {
@@ -118,96 +120,38 @@ public class BlockModCauldron extends Block
     }
 
     @Override
-    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-        super.breakBlock(worldIn, pos, state);
-        allowItemPickup(worldIn, pos);
-    }
-
-    private void allowItemPickup(World worldIn, BlockPos pos) {
-        for (EntityItem entityItem : worldIn.getEntitiesWithinAABB(EntityItem.class, FULL_BLOCK_AABB.offset(pos))) {
-            ItemStack stack = entityItem.getEntityItem();
-            if (stack != null && stack.getItem() != null && (stack.getItem() == ItemsKaoliniteTest.aluminumDust || stack.getItem() == ItemsKaoliniteTest.silicaDust)) {
-                entityItem.setPickupDelay(5);
-            }
-        }
+    @SideOnly(Side.CLIENT)
+    public BlockRenderLayer getBlockLayer() {
+        return BlockRenderLayer.TRANSLUCENT;//TODO messes up model render depth
     }
 
     @Override
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
-        int level = state.getValue(LEVEL).intValue();
-        int actualLevel = Math.min(level, 3);
-        double waterHeight = 0.125 + (actualLevel < 2 ? actualLevel * 0.125 : 0.125 + (actualLevel - 1) * 0.1875);
-        AxisAlignedBB waterBox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
-
-        if (!worldIn.isRemote && entityIn.getEntityBoundingBox().intersectsWith(waterBox.offset(pos))) {
-            if (entityIn.isBurning()) {
+        AxisAlignedBB waterBox = getWaterCollisionBox(state);
+        if (entityIn.getEntityBoundingBox().intersectsWith(waterBox.offset(pos))) {
+            if (!worldIn.isRemote && entityIn.isBurning()) {
                 entityIn.extinguish();
             }
-
             if (entityIn instanceof EntityItem) {
                 EntityItem entityItem = ((EntityItem) entityIn);
                 ItemStack stack = entityItem.getEntityItem();
-                if (stack != null && stack.getItem() != null) {
-                    if (stack.getItem() == ItemsKaoliniteTest.aluminumDust || stack.getItem() == ItemsKaoliniteTest.silicaDust) {
-                        if (level == 3) {
-                            entityItem.setInfinitePickupDelay();
-                            entityItem.lifespan = 6000;
-                            if (stack.stackSize > 1) {
-                                EntityItem entityItem2;
-                                int n = stack.stackSize - 1;
-                                stack.stackSize = 1;
-                                for (int i = 0; i < n; i++) {
-                                    entityItem2 = new EntityItem(worldIn, entityItem.posX, entityItem.posY, entityItem.posZ, stack.copy());
-                                    entityItem2.setInfinitePickupDelay();
-                                    entityItem2.motionY = entityItem.motionY;
-                                    worldIn.spawnEntityInWorld(entityItem2);
-                                }
-                            }
-//                            if (stack.stackSize >= 7) {
-//                                List<Entity> entities = entityItem.worldObj.getEntitiesWithinAABBExcludingEntity(entityItem, new AxisAlignedBB(pos));
-//                                Item otherDustItem = stack.getItem() == ItemsKaoliniteTest.aluminumDust ? ItemsKaoliniteTest.silicaDust : ItemsKaoliniteTest.aluminumDust;
-//                                EntityItem otherDustEntity = getEntityItem(entities, otherDustItem);
-//                                if (otherDustEntity != null) {
-//                                    removeStack(entityItem, stack.getItem());
-//                                    removeStack(otherDustEntity, otherDustItem);
-//                                    this.setWaterLevel(worldIn, pos, state, 4);
-//                                }
-//                            }
-                        }
-                    } else if (stack.getItem() == ItemsKaoliniteTest.crucibleClayDust) {
-                        entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));
-                    }
+                if (stack != null && stack.getItem() != null && !worldIn.isRemote && stack.getItem() == ItemsKaoliniteTest.crucibleClayDust) {
+                    entityItem.setEntityItemStack(new ItemStack(ItemsKaoliniteTest.wetCrucibleClay, stack.stackSize));
                 }
             }
+            return;
         }
     }
 
-    private void removeStack(EntityItem entityItem, Item item) {
-        ItemStack stack = getStack(entityItem, item);
-        stack.stackSize -= 7;
-        if (stack.stackSize <= 0) {
-            entityItem.setDead();
-        }
+    public AxisAlignedBB getWaterCollisionBox(IBlockState state) {
+        int actualLevel = Math.min(getWaterLevel(state), 3);
+        double waterHeight = 0.3125 + (actualLevel < 2 ? actualLevel * 0.125 : 0.125 + (actualLevel - 1) * 0.1875);
+        AxisAlignedBB waterBox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
+        return waterBox;
     }
 
-    private EntityItem getEntityItem(List<Entity> entities, Item item) {
-        for (Entity entity : entities) {
-            if (entity != null && entity instanceof EntityItem) {
-                EntityItem entityItem2 = (EntityItem) entity;
-                if (getStack(entityItem2, item) != null) {
-                    return entityItem2;
-                }
-            }
-        }
-        return null;
-    }
-
-    private ItemStack getStack(EntityItem entityItem, Item item) {
-        ItemStack stack = entityItem.getEntityItem();
-        if (stack != null && stack.getItem() != null && stack.getItem() == item && stack.stackSize >= 7) {
-            return stack;
-        }
-        return null;
+    public int getWaterLevel(IBlockState state) {
+        return state.getValue(LEVEL).intValue();
     }
 
     @Override
@@ -217,7 +161,7 @@ public class BlockModCauldron extends Block
         }
 
         Item item = heldItem.getItem();
-        int level = state.getValue(LEVEL).intValue();
+        int level = getWaterLevel(state);
 
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
         if (lookObject != null && lookObject.isLookingAtLogs) {
@@ -345,7 +289,7 @@ public class BlockModCauldron extends Block
             Vec3d hit = lookObject.hitVec;
             particlePos = new Vec3d(hit.xCoord + Math.random() * 0.01, hit.yCoord + Math.random() * 0.01, hit.zCoord + Math.random() * 0.01);
             for (IParticleFactory particleFactory : particleFactories) {
-                spawnParticle(worldIn, particlePos, particleFactory);
+                ClientHelper.spawnParticle(worldIn, particlePos, particleFactory);
             }
         }
         Vec3d logXZCenter = new Vec3d(0.5, 0, 0.5);
@@ -356,16 +300,12 @@ public class BlockModCauldron extends Block
                 if (particleXZPos.distanceTo(logXZCenter) <= 0.4375) {
                     particlePos = new Vec3d(pos.getX() + particleXZPos.xCoord, pos.getY() + Math.random() * (0.0625 - 0.0625) + 0.0625, pos.getZ() + particleXZPos.zCoord).addVector(0, 0.0625 * 2, 0);
                     for (IParticleFactory particleFactory : particleFactories) {
-                        spawnParticle(worldIn, particlePos, particleFactory);
+                        ClientHelper.spawnParticle(worldIn, particlePos, particleFactory);
                     }
                     break;
                 }
             }
         }
-    }
-
-    private void spawnParticle(World worldIn, Vec3d particlePos, IParticleFactory particleFactory) {
-        Minecraft.getMinecraft().effectRenderer.addEffect(particleFactory.getEntityFX(0, worldIn, particlePos.xCoord, particlePos.yCoord, particlePos.zCoord, 0.0D, 0.0D, 0.0D, new int[0]));
     }
 
     @Override
@@ -390,7 +330,7 @@ public class BlockModCauldron extends Block
             if (worldIn.getBiomeProvider().getTemperatureAtHeight(f, pos.getY()) >= 0.15F) {
                 IBlockState iblockstate = worldIn.getBlockState(pos);
 
-                if (iblockstate.getValue(LEVEL).intValue() < 3) {
+                if (getWaterLevel(iblockstate) < 3) {
                     worldIn.setBlockState(pos, iblockstate.cycleProperty(LEVEL), 2);
                 }
             }
@@ -404,8 +344,6 @@ public class BlockModCauldron extends Block
     public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level) {
         worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 4))), 2);
         worldIn.updateComparatorOutputLevel(pos, this);
-        if (level != 3)
-            allowItemPickup(worldIn, pos);
     }
 
     @Override
@@ -415,7 +353,7 @@ public class BlockModCauldron extends Block
 
     @Override
     public int getComparatorInputOverride(IBlockState blockState, World worldIn, BlockPos pos) {
-        return Math.min(blockState.getValue(LEVEL).intValue(), 3);
+        return Math.min(getWaterLevel(blockState), 3);
     }
 
     @Override
@@ -425,7 +363,7 @@ public class BlockModCauldron extends Block
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        return state.getValue(LEVEL).intValue();
+        return getWaterLevel(state);
     }
 
     @Override
@@ -443,7 +381,7 @@ public class BlockModCauldron extends Block
         if(!(event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK && event.getPlayer().worldObj.getBlockState(event.getTarget().getBlockPos()).getBlock() instanceof BlockModCauldron)) {
             return;
         }
-        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+        EntityPlayer player = ClientHelper.getPlayer();
         BlockPos pos = event.getTarget().getBlockPos();
         ExtendedRayTraceResult rayTraceResult = getExtendedRayTraceResultFromPlayer(player, pos);
         if (rayTraceResult != null) {
