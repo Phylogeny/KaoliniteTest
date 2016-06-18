@@ -5,6 +5,7 @@ import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.PacketRegistration;
 import com.phylogeny.kaolinitetest.init.RecipeRegistration;
+import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 import com.phylogeny.kaolinitetest.world.WorldGen;
 
 public class ProxyCommon
@@ -15,6 +16,7 @@ public class ProxyCommon
         BlocksKaoliniteTest.registerBlocks();
         FluidsKaoliniteTest.registerFluid();
         PacketRegistration.registerPackets();
+        TileEntityCauldron.register();
     }
 
     public void init()

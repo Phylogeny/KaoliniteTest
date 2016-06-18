@@ -9,9 +9,11 @@ import com.phylogeny.kaolinitetest.client.helper.ClientHelper;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeLarge;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSplash;
+import com.phylogeny.kaolinitetest.entity.EntityItemKaolinitePrecursor;
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.RecipeRegistration;
+import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
@@ -25,6 +27,7 @@ import net.minecraft.client.particle.ParticleFlame;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -37,8 +40,8 @@ import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.stats.StatList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityBanner;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
@@ -51,13 +54,10 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockModCauldron extends Block
-{
+public class BlockModCauldron extends Block {
     private final boolean isBurning;
-    public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 4);
+    public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 3);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.1875, 0.1875, 0.25, 0.3125);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.3125, 0.25, 0.1875);
     protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.6875, 0.1875, 0.25, 0.8125);
@@ -81,10 +81,20 @@ public class BlockModCauldron extends Block
 
     public BlockModCauldron(boolean isBurning) {
         super(Material.IRON, MapColor.STONE);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(0)));
+        setDefaultState(blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(0)));
         if (isBurning)
             setLightLevel(0.875F);
         this.isBurning = isBurning;
+    }
+
+    @Override
+    public boolean hasTileEntity(IBlockState state) {
+        return true;
+    }
+
+    @Override
+    public TileEntity createTileEntity(World world, IBlockState state) {
+        return new TileEntityCauldron();
     }
 
     @Override
@@ -120,9 +130,18 @@ public class BlockModCauldron extends Block
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public BlockRenderLayer getBlockLayer() {
-        return BlockRenderLayer.TRANSLUCENT;//TODO messes up model render depth
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
+            ((TileEntityCauldron) tileEntity).liftHandle();
+        }
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        super.breakBlock(worldIn, pos, state);
+        worldIn.removeTileEntity(pos);
     }
 
     @Override
@@ -144,8 +163,8 @@ public class BlockModCauldron extends Block
     }
 
     public AxisAlignedBB getWaterCollisionBox(IBlockState state) {
-        int actualLevel = Math.min(getWaterLevel(state), 3);
-        double waterHeight = 0.3125 + (actualLevel < 2 ? actualLevel * 0.125 : 0.125 + (actualLevel - 1) * 0.1875);
+        int level = getWaterLevel(state);
+        double waterHeight = 0.3125 + (level < 2 ? level * 0.125 : 0.125 + (level - 1) * 0.1875);
         AxisAlignedBB waterBox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
         return waterBox;
     }
@@ -156,9 +175,14 @@ public class BlockModCauldron extends Block
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if (heldItem == null) {
+        if (heldItem == null)
             return true;
-        }
+
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity == null || !(tileEntity instanceof TileEntityCauldron))
+            return true;
+
+        TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
 
         Item item = heldItem.getItem();
         int level = getWaterLevel(state);
@@ -181,39 +205,43 @@ public class BlockModCauldron extends Block
                     if (!playerIn.capabilities.isCreativeMode) {
                         playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
                     }
-                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_unlit.getDefaultState().withProperty(LEVEL, Integer.valueOf(level)));
+                    setCauldronBurning(worldIn, pos, level, BlocksKaoliniteTest.cauldron_unlit);
                 }
             } else if (item == Items.FLINT_AND_STEEL) {
                 worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
                 spawnParticlesForLogs(worldIn, pos, lookObject, 16, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory());
                 heldItem.damageItem(1, playerIn);
                 if (!worldIn.isRemote) {
-                    worldIn.setBlockState(pos, BlocksKaoliniteTest.cauldron_lit.getDefaultState().withProperty(LEVEL, Integer.valueOf(level)));
+                    setCauldronBurning(worldIn, pos, level, BlocksKaoliniteTest.cauldron_lit);
                 }
             }
             return true;
         }
 
+        boolean isPrecursor = cauldronTE.isPrecursor();
+        boolean isPureWater = !isPrecursor && cauldronTE.getCountAluminum() == 0 && cauldronTE.getCountSilica() == 0;
+
         if (item == Items.BUCKET) {
-            if (level >= 3) {
+            if (level == 3 && (isPrecursor || isPureWater)) {
                 if (!worldIn.isRemote) {
                     if (!playerIn.capabilities.isCreativeMode) {
                         --heldItem.stackSize;
                         if (heldItem.stackSize == 0) {
-                            playerIn.setHeldItem(hand, getLiquidBucket(level));
-                        } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(level))) {
-                            playerIn.dropItem(getLiquidBucket(level), false);
+                            playerIn.setHeldItem(hand, getLiquidBucket(isPrecursor));
+                        } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(isPrecursor))) {
+                            playerIn.dropItem(getLiquidBucket(isPrecursor), false);
                         }
                     }
                     playerIn.addStat(StatList.CAULDRON_USED);
-                    this.setWaterLevel(worldIn, pos, state, 0);
+                    setWaterLevel(worldIn, pos, state, 0, false);
                 }
                 worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
             }
             return true;
         }
 
-        if (level > 3) return true;
+        if (isPrecursor)
+            return item == Items.WATER_BUCKET;
 
         if (item == Items.WATER_BUCKET || item == ItemsKaoliniteTest.supernatantAndPrecipitateBucket) {
             if (level < 3 && !worldIn.isRemote) {
@@ -221,12 +249,14 @@ public class BlockModCauldron extends Block
                     playerIn.setHeldItem(hand, new ItemStack(item == Items.WATER_BUCKET ? Items.BUCKET : ItemsKaoliniteTest.bucketPrecipitate));
                 }
                 playerIn.addStat(StatList.CAULDRON_FILLED);
-                this.setWaterLevel(worldIn, pos, state, 3);
+                setWaterLevel(worldIn, pos, state, 3, false);
             }
+            cauldronTE.setCountAluminum(0);
+            cauldronTE.setCountSilica(0);
             playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
         } else if (item == Items.GLASS_BOTTLE) {
-            if (level > 0 && !worldIn.isRemote) {
+            if (level > 0 && isPureWater && !worldIn.isRemote) {
                 if (!playerIn.capabilities.isCreativeMode) {
                     ItemStack itemstack1 = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), PotionTypes.WATER);
                     playerIn.addStat(StatList.CAULDRON_USED);
@@ -239,7 +269,7 @@ public class BlockModCauldron extends Block
                         ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
                     }
                 }
-                this.setWaterLevel(worldIn, pos, state, level - 1);
+                setWaterLevel(worldIn, pos, state, level - 1, true);
             }
             return true;
         } else {
@@ -247,7 +277,7 @@ public class BlockModCauldron extends Block
                 ItemArmor itemarmor = (ItemArmor)item;
                 if (itemarmor.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && itemarmor.hasColor(heldItem) && !worldIn.isRemote) {
                     itemarmor.removeColor(heldItem);
-                    this.setWaterLevel(worldIn, pos, state, level - 1);
+                    setWaterLevel(worldIn, pos, state, level - 1, true);
                     playerIn.addStat(StatList.ARMOR_CLEANED);
                     return true;
                 }
@@ -272,13 +302,31 @@ public class BlockModCauldron extends Block
                     }
 
                     if (!playerIn.capabilities.isCreativeMode) {
-                        this.setWaterLevel(worldIn, pos, state, level - 1);
+                        setWaterLevel(worldIn, pos, state, level - 1, true);
                     }
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    private void setCauldronBurning(World worldIn, BlockPos pos, int level, Block cauldronBlock) {
+        int countAluminum = 0;
+        int countSilica = 0;
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
+            TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
+            countAluminum = cauldronTE.getCountAluminum();
+            countSilica = cauldronTE.getCountSilica();
+        }
+        setWaterLevel(worldIn, pos, cauldronBlock.getDefaultState().getActualState(worldIn, pos), level, false);
+        tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
+            TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
+            cauldronTE.setCountAluminum(countAluminum);
+            cauldronTE.setCountSilica(countSilica);
+        }
     }
 
     private void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
@@ -328,22 +376,32 @@ public class BlockModCauldron extends Block
             float f = worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos);
 
             if (worldIn.getBiomeProvider().getTemperatureAtHeight(f, pos.getY()) >= 0.15F) {
-                IBlockState iblockstate = worldIn.getBlockState(pos);
+                IBlockState state = worldIn.getBlockState(pos);
 
-                if (getWaterLevel(iblockstate) < 3) {
-                    worldIn.setBlockState(pos, iblockstate.cycleProperty(LEVEL), 2);
+                if (getWaterLevel(state) < 3) {
+                    worldIn.setBlockState(pos, state.cycleProperty(LEVEL), 2);
                 }
             }
         }
     }
 
-    private ItemStack getLiquidBucket(int level) {
-        return level == 3 ? new ItemStack(Items.WATER_BUCKET) : RecipeRegistration.getKaolinitePrecursorBucketStack();
+    private ItemStack getLiquidBucket(boolean isPrecursor) {
+        return isPrecursor ? RecipeRegistration.getKaolinitePrecursorBucketStack() : new ItemStack(Items.WATER_BUCKET);
     }
 
-    public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level) {
-        worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 4))), 2);
-        worldIn.updateComparatorOutputLevel(pos, this);
+    public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level, boolean allowItemPickup) {
+        worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 3))), 2);
+        if (allowItemPickup)
+            allowItemPickup(worldIn, pos, state, true, true);
+    }
+
+    public void allowItemPickup(World worldIn, BlockPos pos, IBlockState state, boolean aluminumPickup, boolean silicaPickup) {
+        for (EntityItemKaolinitePrecursor entityItem : worldIn.getEntitiesWithinAABB(EntityItemKaolinitePrecursor.class, getWaterCollisionBox(state).offset(pos))) {
+            boolean isAluminum = entityItem.getEntityItem().getItem() == ItemsKaoliniteTest.aluminumDust;
+            if ((isAluminum && aluminumPickup) || (!isAluminum && silicaPickup)) {
+                entityItem.setPickupDelay(5);
+            }
+        }
     }
 
     @Override
@@ -353,12 +411,12 @@ public class BlockModCauldron extends Block
 
     @Override
     public int getComparatorInputOverride(IBlockState blockState, World worldIn, BlockPos pos) {
-        return Math.min(getWaterLevel(blockState), 3);
+        return getWaterLevel(blockState);
     }
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(LEVEL, Integer.valueOf(meta));
+        return getDefaultState().withProperty(LEVEL, Integer.valueOf(meta));
     }
 
     @Override

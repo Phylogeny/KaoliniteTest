@@ -1,36 +1,17 @@
 {
 	"forge_marker": 1,
 	"defaults": {
-		"textures": {
-			"liquid": "blocks/water_still"
-		},
-		"model": "kaolinitetest:cauldron/cauldron_block_empty"
+		"model": "kaolinitetest:cauldron_block",
+		"transform": "forge:default-block"
     },
 	"variants": {
-		"normal": [ {
-			"model": "kaolinitetest:cauldron/cauldron_block_empty"
-		} ],
+		"normal": [ { } ],
 		"inventory": [ {
-			"model": "kaolinitetest:cauldron/cauldron_block_empty"
+			"model": "kaolinitetest:cauldron_block_with_handle"
 		} ],
 		"level=0": [ { } ],
-        "level=1": [ {
-			"submodel": "kaolinitetest:cauldron/cauldron_water_level_1"
-		} ],
-        "level=2": [ {
-			"submodel": "kaolinitetest:cauldron/cauldron_water_level_2"
-		} ],
-        "level=3": [ {
-			"textures": {
-				"liquid": "blocks/water_still"
-			},
-			"submodel": "kaolinitetest:cauldron/cauldron_water_level_3"
-		} ],
-		"level=4": [ {
-			"textures": {
-				"liquid": "kaolinitetest:fluids/kaolinite_precursor_still"
-			},
-			"submodel": "kaolinitetest:cauldron/cauldron_water_level_3"
-		} ]
+		"level=1": [ { } ],
+        "level=2": [ { } ],
+        "level=3": [ { } ]
 	}
 }
