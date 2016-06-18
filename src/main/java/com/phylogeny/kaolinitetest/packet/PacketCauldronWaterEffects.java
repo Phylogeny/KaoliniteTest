@@ -16,15 +16,15 @@ public class PacketCauldronWaterEffects implements IMessage
 {
     private Vec3d pos, motion;
     private double minY;
-    
+
     public PacketCauldronWaterEffects() {}
-    
+
     public PacketCauldronWaterEffects(double posX, double posY, double posZ, double motionX, double motionY, double motionZ, double minY) {
         pos = new Vec3d(posX, posY, posZ);
         motion = new Vec3d(motionX, motionY, motionZ);
         this.minY = minY;
     }
-    
+
     @Override
     public void toBytes(ByteBuf buffer) {
         buffer.writeDouble(pos.xCoord);
@@ -35,14 +35,14 @@ public class PacketCauldronWaterEffects implements IMessage
         buffer.writeDouble(motion.zCoord);
         buffer.writeDouble(minY);
     }
-    
+
     @Override
     public void fromBytes(ByteBuf buffer) {
         pos = new Vec3d(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
         motion = new Vec3d(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
         minY = buffer.readDouble();
     }
-    
+
     public static class Handler implements IMessageHandler<PacketCauldronWaterEffects, IMessage> {
         @Override
         public IMessage onMessage(final PacketCauldronWaterEffects message, final MessageContext ctx) {
@@ -73,5 +73,5 @@ public class PacketCauldronWaterEffects implements IMessage
         }
 
     }
-    
+
 }
