@@ -12,6 +12,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
+    private static final double MAX_HEIGHT = 0.1875;
 
     protected ParticleCauldronSmokeNormal(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn, float scale) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn, scale);
@@ -25,9 +26,9 @@ public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
         BlockPos pos = new BlockPos(x, y, z);
         if (worldObj.getBlockState(pos).getBlock() instanceof BlockModCauldron) {
             x = posX - x;
-            y = posY - y;
+            double y2 = posY - y;
             z = posZ - z;
-            if (y >= 0.1875 && x <= 0.875 && x >= 0.125 && z <= 0.875 && z >= 0.125) {
+            if (y2 >= MAX_HEIGHT && x <= 0.875 && x >= 0.125 && z <= 0.875 && z >= 0.125) {
                 isCollided = true;
                 motionY = 0;
                 motionX *= 1.1;
@@ -35,6 +36,8 @@ public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
             }
         }
         super.onUpdate();
+        if (posY - y > MAX_HEIGHT)
+            posY = y + MAX_HEIGHT;
     }
 
     @SideOnly(Side.CLIENT)
