@@ -39,13 +39,13 @@ public class EntityItemKaolinitePrecursor extends EntityItem {
         if (state.getBlock() instanceof BlockModCauldron) {
             BlockModCauldron cauldron = (BlockModCauldron) state.getBlock();
             if (cauldron.getWaterCollisionBox(state).offset(pos).intersectsWith(getEntityBoundingBox())) {
-            	boolean preventItemPickup = false;
-            	TileEntity tileEntity = worldObj.getTileEntity(pos);
+                boolean preventItemPickup = false;
+                TileEntity tileEntity = worldObj.getTileEntity(pos);
                 if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
-                	TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
-                	boolean isAluminum = getEntityItem().getItem() == ItemsKaoliniteTest.aluminumDust;
-                	preventItemPickup = ((isAluminum && cauldronTE.getCountAluminum() != 7) || (!isAluminum && cauldronTE.getCountSilica() != 7))
-                			&& cauldron.getWaterLevel(state) == 3 && !cauldronTE.isPrecursor();
+                    TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
+                    boolean isAluminum = getEntityItem().getItem() == ItemsKaoliniteTest.aluminumDust;
+                    preventItemPickup = ((isAluminum && cauldronTE.getCountAluminum() != 7) || (!isAluminum && cauldronTE.getCountSilica() != 7))
+                            && cauldron.getWaterLevel(state) == 3 && !cauldronTE.isPrecursor();
                 }
                 handleCauldronWaterMovement(preventItemPickup);
                 return;
@@ -66,7 +66,7 @@ public class EntityItemKaolinitePrecursor extends EntityItem {
             KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronWaterEffects(posX, posY, posZ, motionX, motionY, motionZ,
                     getEntityBoundingBox().minY), new TargetPoint(dimension, posX, posY, posZ, 50));
             if (preventItemPickup)
-            	splitStack();
+                splitStack();
         }
         inCauldronWater = true;
         if (preventItemPickup) {
