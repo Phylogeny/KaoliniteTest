@@ -2,7 +2,6 @@ package com.phylogeny.kaolinitetest.init;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
-import com.phylogeny.kaolinitetest.packet.PacketCauldronFormSolution;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronWaterEffects;
 
 import net.minecraftforge.fml.relauncher.Side;
@@ -15,7 +14,6 @@ public class PacketRegistration
     {
         registerPacket(PacketCauldronWaterEffects.Handler.class, PacketCauldronWaterEffects.class, Side.CLIENT);
         registerPacket(PacketCauldronConsumeItem.Handler.class, PacketCauldronConsumeItem.class, Side.CLIENT);
-        registerPacket(PacketCauldronFormSolution.Handler.class, PacketCauldronFormSolution.class, Side.CLIENT);
     }
     
     private static void registerPacket(Class handler, Class packet, Side side)

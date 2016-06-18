@@ -219,7 +219,7 @@ public class BlockModCauldron extends Block {
         }
 
         boolean isPrecursor = cauldronTE.isPrecursor();
-        boolean isPureWater = !isPrecursor && cauldronTE.getCountAluminum() == 0 && cauldronTE.getCountSilica() == 0;
+        boolean isPureWater = cauldronTE.isPureWater();
 
         if (item == Items.BUCKET) {
             if (level == 3 && (isPrecursor || isPureWater)) {
@@ -251,8 +251,7 @@ public class BlockModCauldron extends Block {
                 playerIn.addStat(StatList.CAULDRON_FILLED);
                 setWaterLevel(worldIn, pos, state, 3, false);
             }
-            cauldronTE.setCountAluminum(0);
-            cauldronTE.setCountSilica(0);
+            cauldronTE.setPureWater();
             playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
         } else if (item == Items.GLASS_BOTTLE) {

@@ -4,10 +4,11 @@ import javax.annotation.Nullable;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
 import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.client.helper.ClientHelper;
 import com.phylogeny.kaolinitetest.entity.EntityItemKaolinitePrecursor;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
+import com.phylogeny.kaolinitetest.init.SoundsKaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
-import com.phylogeny.kaolinitetest.packet.PacketCauldronFormSolution;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
@@ -18,15 +19,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TileEntityCauldron extends TileEntity implements ITickable {
     private int tickCounter, bufferCounter, buffer, countAluminum, countSilica;
-    private boolean isPrecursor;
-
+    private boolean handleRebounded, handleHasEnergy;
     private static final float MAX_HANDLE_ROTATION = -0.43F;
     private float handleRotation = MAX_HANDLE_ROTATION;
+
+    public static void register() {
+        GameRegistry.registerTileEntity(TileEntityCauldron.class, "cauldron");
+    }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
@@ -67,18 +70,35 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         this.countSilica = countSilica;
     }
 
-    public static void register() {
-        GameRegistry.registerTileEntity(TileEntityCauldron.class, "cauldron");
+    public boolean isPrecursor() {
+        return countAluminum == 7 && countSilica == 7;
+    }
+
+    public boolean isPureWater() {
+        return countAluminum == 0 && countSilica == 0;
+    }
+
+    public void setPureWater() {
+        countAluminum = countSilica = 0;
     }
 
     @Override
     public void update() {
-        if (worldObj.isRemote && tickCounter > 1 && handleRotation > MAX_HANDLE_ROTATION) {
-            handleRotation -= 0.03999999910593033;
+        if (worldObj.isRemote && tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy)) {
+        	boolean wasLifted = handleRotation > MAX_HANDLE_ROTATION;
+        	handleRotation -= 0.03999999910593033;
             handleRotation *= 4;
-            if (handleRotation < MAX_HANDLE_ROTATION) {
-                handleRotation = MAX_HANDLE_ROTATION;
-                System.out.println("*clink sound*");//TODO add sound
+            if (handleRotation <= MAX_HANDLE_ROTATION) {
+            	handleRotation = MAX_HANDLE_ROTATION;
+            	if (handleHasEnergy) {
+            		if (wasLifted && !handleRebounded) {
+                		handleRebounded = true;
+                		ClientHelper.playSound(SoundsKaoliniteTest.CAULDRON_HANDLE);
+                	} else {
+                		handleRotation += 0.1F;
+                		handleHasEnergy = false;
+                	}
+            	}
             }
         }
 
@@ -118,10 +138,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
                     if (countAluminum == 7 || countSilica == 7) {
                         cauldron.allowItemPickup(worldObj, pos, state, countAluminum == 7, countSilica == 7);
                     }
-                    if (countAluminum == 7 && countSilica == 7) {
-                        isPrecursor = true;
-                        sendPacketToAllAround(new PacketCauldronFormSolution(pos));
-                    }
                 }
             }
         }
@@ -136,12 +152,9 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             countSilica++;
         }
         if (!worldObj.isRemote) {
-            sendPacketToAllAround(new PacketCauldronConsumeItem(pos, isAluminum));
+            KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronConsumeItem(pos, isAluminum),
+            		new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
         }
-    }
-
-    private void sendPacketToAllAround(IMessage packet) {
-        KaoliniteTest.packetNetwork.sendToAllAround(packet, new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
     }
 
     @Override
@@ -149,7 +162,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         super.writeToNBT(nbt);
         nbt.setInteger("countAluminum", countAluminum);
         nbt.setInteger("countSilica", countSilica);
-        nbt.setBoolean("isPrecursor", isPrecursor);
         return nbt;
     }
 
@@ -158,15 +170,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         super.readFromNBT(nbt);
         countAluminum = nbt.getInteger("countAluminum");
         countSilica = nbt.getInteger("countSilica");
-        isPrecursor = nbt.getBoolean("isPrecursor");
-    }
-
-    public boolean isPrecursor() {
-        return isPrecursor;
-    }
-
-    public void setToWater() {
-        isPrecursor = true;
     }
 
     public float getAlpha() {
@@ -186,6 +189,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
     public void liftHandle() {
         handleRotation = 0;
+        handleHasEnergy = true;
         tickCounter = 0;
     }
 
