@@ -15,10 +15,12 @@ import net.minecraftforge.fluids.Fluid;
 
 public class ModelRegistration
 {
+    public static final ModelResourceLocation CAULDRON_HANDLE = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "cauldron/cauldron_handle"), null);
+    public static final ResourceLocation CAULDRON_PERCIPITATE = new ResourceLocation(Reference.MOD_ID, "textures/blocks/percipitate_kaolinite.png");
+
     public static void registerModels()
     {
-        registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock,
-                FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
+        registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock, FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
         registerBlockModel(BlocksKaoliniteTest.kaoliniteBlock);
         registerBlockModel(BlocksKaoliniteTest.cauldron_lit);
         registerBlockModel(BlocksKaoliniteTest.cauldron_unlit);
@@ -35,6 +37,12 @@ public class ModelRegistration
         registerItemModel(ItemsKaoliniteTest.unfiredCrucible);
         registerItemModel(ItemsKaoliniteTest.crucible);
         registerItemModel(ItemsKaoliniteTest.removalTool);
+        registerIsolatedModel(CAULDRON_HANDLE);
+    }
+
+    private static void registerIsolatedModel(ResourceLocation resourceLocations)
+    {
+        ModelLoader.registerItemVariants(ItemsKaoliniteTest.removalTool, resourceLocations);
     }
 
     private static void registerFluidModel(Block block, Fluid fluid, String name)
@@ -43,8 +51,7 @@ public class ModelRegistration
         if (item != null)
         {
             ModelLoader.registerItemVariants(item);
-            final ModelResourceLocation modelResourceLocation = new ModelResourceLocation(
-                    new ResourceLocation(Reference.MOD_ID, name), fluid.getName());
+            final ModelResourceLocation modelResourceLocation = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, name), fluid.getName());
             ItemMeshDefinition mesh = new ItemMeshDefinition()
             {
                 @Override
@@ -87,8 +94,7 @@ public class ModelRegistration
         {
             ModelLoader.registerItemVariants(item, new ResourceLocation(name));
         }
-        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(
-                new ResourceLocation(name), "inventory"));
+        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(new ResourceLocation(name), "inventory"));
     }
 
 }
