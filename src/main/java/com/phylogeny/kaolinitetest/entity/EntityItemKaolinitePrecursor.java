@@ -2,11 +2,14 @@ package com.phylogeny.kaolinitetest.entity;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
 import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronWaterEffects;
+import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -36,7 +39,15 @@ public class EntityItemKaolinitePrecursor extends EntityItem {
         if (state.getBlock() instanceof BlockModCauldron) {
             BlockModCauldron cauldron = (BlockModCauldron) state.getBlock();
             if (cauldron.getWaterCollisionBox(state).offset(pos).intersectsWith(getEntityBoundingBox())) {
-                handleCauldronWaterMovement(cauldron.getWaterLevel(state) == 3);
+            	boolean preventItemPickup = false;
+            	TileEntity tileEntity = worldObj.getTileEntity(pos);
+                if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
+                	TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
+                	boolean isAluminum = getEntityItem().getItem() == ItemsKaoliniteTest.aluminumDust;
+                	preventItemPickup = ((isAluminum && cauldronTE.getCountAluminum() != 7) || (!isAluminum && cauldronTE.getCountSilica() != 7))
+                			&& cauldron.getWaterLevel(state) == 3 && !cauldronTE.isPrecursor();
+                }
+                handleCauldronWaterMovement(preventItemPickup);
                 return;
             }
         }
@@ -54,7 +65,8 @@ public class EntityItemKaolinitePrecursor extends EntityItem {
             playSound(getSplashSound(), f, 1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.4F);
             KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronWaterEffects(posX, posY, posZ, motionX, motionY, motionZ,
                     getEntityBoundingBox().minY), new TargetPoint(dimension, posX, posY, posZ, 50));
-            splitStack();
+            if (preventItemPickup)
+            	splitStack();
         }
         inCauldronWater = true;
         if (preventItemPickup) {
