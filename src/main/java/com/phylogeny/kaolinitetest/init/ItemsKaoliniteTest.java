@@ -10,13 +10,11 @@ import com.phylogeny.kaolinitetest.item.ItemToolRemoval;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-public class ItemsKaoliniteTest
-{
+public class ItemsKaoliniteTest {
     public static Item aluminumDust, silicaDust, kaoliniteDust, crucibleClayDust, supernatantAndPrecipitateBucket, bucketPrecipitate,
                         kaoliniteBall, kaoliniteBrick, kaoliniteShard, wetCrucibleClay, unfiredCrucible, crucible, removalTool;
 
-    public static void itemsInit()
-    {
+    public static void itemsInit() {
         aluminumDust = registerItem(new ItemKaolinitePrecursor("dust_aluminum"));
         silicaDust = registerItem(new ItemKaolinitePrecursor("dust_silica"));
         kaoliniteDust = registerItem("dust_kaolinite");
@@ -32,13 +30,11 @@ public class ItemsKaoliniteTest
         removalTool = registerItem(new ItemToolRemoval("tool_removal"));
     }
 
-    private static ItemKaoliniteTestBase registerItem(String name)
-    {
+    private static ItemKaoliniteTestBase registerItem(String name) {
         return registerItem(new ItemKaoliniteTestBase(name));
     }
 
-    private static ItemKaoliniteTestBase registerItem(ItemKaoliniteTestBase item)
-    {
+    private static ItemKaoliniteTestBase registerItem(ItemKaoliniteTestBase item) {
         GameRegistry.register(item);
         return item;
     }

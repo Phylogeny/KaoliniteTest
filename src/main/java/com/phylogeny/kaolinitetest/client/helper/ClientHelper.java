@@ -8,10 +8,8 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class ClientHelper
-{
-    public static EntityPlayer getPlayer()
-    {
+public class ClientHelper {
+    public static EntityPlayer getPlayer() {
         return Minecraft.getMinecraft().thePlayer;
     }
 
@@ -19,8 +17,7 @@ public class ClientHelper
         Minecraft.getMinecraft().effectRenderer.addEffect(particleFactory.getEntityFX(0, worldIn, particlePos.xCoord, particlePos.yCoord, particlePos.zCoord, 0.0D, 0.0D, 0.0D, new int[0]));
     }
 
-    public static void playSound(SoundEvent sound)
-    {
+    public static void playSound(SoundEvent sound) {
         if (sound == null)
             return;
         Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(sound, 1.0F));

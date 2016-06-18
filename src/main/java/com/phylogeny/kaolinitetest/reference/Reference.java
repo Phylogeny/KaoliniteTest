@@ -1,7 +1,6 @@
 package com.phylogeny.kaolinitetest.reference;
 
-public class Reference
-{
+public class Reference {
     public static final String MOD_ID = "KaoliniteTest";
     public static final String GROUP_ID = "kaolinitetest";
     public static final String MOD_NAME = "Kaolinite Test";

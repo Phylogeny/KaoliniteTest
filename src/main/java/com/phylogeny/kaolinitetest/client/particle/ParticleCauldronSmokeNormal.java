@@ -1,6 +1,6 @@
 package com.phylogeny.kaolinitetest.client.particle;
 
-import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.block.BlockCauldron;
 
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.Particle;
@@ -24,7 +24,7 @@ public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
         double y = MathHelper.floor_double(posY);
         double z = MathHelper.floor_double(posZ);
         BlockPos pos = new BlockPos(x, y, z);
-        if (worldObj.getBlockState(pos).getBlock() instanceof BlockModCauldron) {
+        if (worldObj.getBlockState(pos).getBlock() instanceof BlockCauldron) {
             x = posX - x;
             double y2 = posY - y;
             z = posZ - z;
@@ -47,4 +47,5 @@ public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
             return new ParticleCauldronSmokeNormal(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn, 1.0F);
         }
     }
+
 }

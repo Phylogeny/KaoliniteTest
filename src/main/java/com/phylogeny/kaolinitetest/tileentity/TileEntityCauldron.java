@@ -3,7 +3,7 @@ package com.phylogeny.kaolinitetest.tileentity;
 import javax.annotation.Nullable;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
-import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.block.BlockCauldron;
 import com.phylogeny.kaolinitetest.client.helper.ClientHelper;
 import com.phylogeny.kaolinitetest.entity.EntityItemKaolinitePrecursor;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
@@ -85,21 +85,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     @Override
     public void update() {
         if (worldObj.isRemote && tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy)) {
-        	boolean wasLifted = handleRotation > MAX_HANDLE_ROTATION;
-        	handleRotation -= 0.03999999910593033;
-            handleRotation *= 4;
-            if (handleRotation <= MAX_HANDLE_ROTATION) {
-            	handleRotation = MAX_HANDLE_ROTATION;
-            	if (handleHasEnergy) {
-            		if (wasLifted && !handleRebounded) {
-                		handleRebounded = true;
-                		ClientHelper.playSound(SoundsKaoliniteTest.CAULDRON_HANDLE);
-                	} else {
-                		handleRotation += 0.1F;
-                		handleHasEnergy = false;
-                	}
-            	}
-            }
+            rotateHandle();
         }
 
         if (countAluminum == 7 && countSilica == 7)
@@ -108,36 +94,63 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         if (buffer > 0 && bufferCounter < 10)
             bufferCounter++;
 
-        if (tickCounter++ % 10 == 0) {
-            buffer = bufferCounter = 0;
-            if (worldObj.isRemote)
-                return;
+        if (tickCounter++ % 10 != 0)
+            return;
 
-            IBlockState state = worldObj.getBlockState(getPos());
-            if (state.getBlock() instanceof BlockModCauldron) {
-                BlockModCauldron cauldron = (BlockModCauldron) state.getBlock();
-                if (cauldron.getWaterLevel(state) == 3) {
-                    AxisAlignedBB waterBox = cauldron.getWaterCollisionBox(state).offset(getPos());
-                    for (EntityItemKaolinitePrecursor entityItem : worldObj.getEntitiesWithinAABB(EntityItemKaolinitePrecursor.class, waterBox)) {
-                        ItemStack stack = entityItem.getEntityItem();
-                        if (stack != null) {
-                            if (stack.getItem() == ItemsKaoliniteTest.aluminumDust && countAluminum < 7) {
-                                entityItem.setDead();
-                                if (!worldObj.isRemote)
-                                    onItemConsumed(true);
-                                break;
-                            }
-                            if (stack.getItem() == ItemsKaoliniteTest.silicaDust && countSilica < 7) {
-                                entityItem.setDead();
-                                if (!worldObj.isRemote)
-                                    onItemConsumed(false);
-                                break;
-                            }
-                        }
-                    }
-                    if (countAluminum == 7 || countSilica == 7) {
-                        cauldron.allowItemPickup(worldObj, pos, state, countAluminum == 7, countSilica == 7);
-                    }
+        buffer = bufferCounter = 0;
+        if (worldObj.isRemote)
+            return;
+
+        IBlockState state = worldObj.getBlockState(getPos());
+        if (!(state.getBlock() instanceof BlockCauldron))
+            return;
+
+        BlockCauldron cauldron = (BlockCauldron) state.getBlock();
+        if (cauldron.getWaterLevel(state) != 3)
+            return;
+
+        AxisAlignedBB waterBox = cauldron.getWaterCollisionBox(state).offset(getPos());
+        for (EntityItemKaolinitePrecursor entityItem : worldObj.getEntitiesWithinAABB(EntityItemKaolinitePrecursor.class, waterBox)) {
+            if (consumeItem(entityItem))
+                break;
+        }
+        if (countAluminum == 7 || countSilica == 7) {
+            cauldron.allowItemPickup(worldObj, pos, state, countAluminum == 7, countSilica == 7);
+        }
+    }
+
+    private boolean consumeItem(EntityItemKaolinitePrecursor entityItem) {
+        ItemStack stack = entityItem.getEntityItem();
+        if (stack != null) {
+            if (stack.getItem() == ItemsKaoliniteTest.aluminumDust && countAluminum < 7) {
+                entityItem.setDead();
+                if (!worldObj.isRemote)
+                    onItemConsumed(true);
+                return true;
+            }
+            if (stack.getItem() == ItemsKaoliniteTest.silicaDust && countSilica < 7) {
+                entityItem.setDead();
+                if (!worldObj.isRemote)
+                    onItemConsumed(false);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void rotateHandle() {
+        boolean wasLifted = handleRotation > MAX_HANDLE_ROTATION;
+        handleRotation -= 0.03999999910593033;
+        handleRotation *= 4;
+        if (handleRotation <= MAX_HANDLE_ROTATION) {
+            handleRotation = MAX_HANDLE_ROTATION;
+            if (handleHasEnergy) {
+                if (wasLifted && !handleRebounded) {
+                    handleRebounded = true;
+                    ClientHelper.playSound(SoundsKaoliniteTest.CAULDRON_HANDLE);
+                } else {
+                    handleRotation += 0.1F;
+                    handleHasEnergy = false;
                 }
             }
         }
@@ -151,9 +164,10 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         } else {
             countSilica++;
         }
+
         if (!worldObj.isRemote) {
             KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronConsumeItem(pos, isAluminum),
-            		new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
+                    new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
         }
     }
 

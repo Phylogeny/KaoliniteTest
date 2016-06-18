@@ -8,10 +8,8 @@ import com.phylogeny.kaolinitetest.init.RecipeRegistration;
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 import com.phylogeny.kaolinitetest.world.WorldGen;
 
-public class ProxyCommon
-{
-    public void preInit()
-    {
+public class ProxyCommon {
+    public void preInit() {
         ItemsKaoliniteTest.itemsInit();
         BlocksKaoliniteTest.registerBlocks();
         FluidsKaoliniteTest.registerFluid();
@@ -19,8 +17,7 @@ public class ProxyCommon
         TileEntityCauldron.register();
     }
 
-    public void init()
-    {
+    public void init() {
         RecipeRegistration.recipeInit();
         WorldGen.registerWorldGen();
     }

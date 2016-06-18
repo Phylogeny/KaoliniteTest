@@ -1,7 +1,7 @@
 package com.phylogeny.kaolinitetest.entity;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
-import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.block.BlockCauldron;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronWaterEffects;
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
@@ -36,8 +36,8 @@ public class EntityItemKaolinitePrecursor extends EntityItem {
         int z = MathHelper.floor_double(posZ);
         BlockPos pos = new BlockPos(x, y, z);
         IBlockState state = worldObj.getBlockState(pos);
-        if (state.getBlock() instanceof BlockModCauldron) {
-            BlockModCauldron cauldron = (BlockModCauldron) state.getBlock();
+        if (state.getBlock() instanceof BlockCauldron) {
+            BlockCauldron cauldron = (BlockCauldron) state.getBlock();
             if (cauldron.getWaterCollisionBox(state).offset(pos).intersectsWith(getEntityBoundingBox())) {
                 boolean preventItemPickup = false;
                 TileEntity tileEntity = worldObj.getTileEntity(pos);

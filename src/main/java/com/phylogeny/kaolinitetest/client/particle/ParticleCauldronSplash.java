@@ -1,6 +1,6 @@
 package com.phylogeny.kaolinitetest.client.particle;
 
-import com.phylogeny.kaolinitetest.block.BlockModCauldron;
+import com.phylogeny.kaolinitetest.block.BlockCauldron;
 
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.Particle;
@@ -12,7 +12,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ParticleCauldronSplash extends ParticleSplash {
-
     protected ParticleCauldronSplash(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
     }
@@ -23,7 +22,7 @@ public class ParticleCauldronSplash extends ParticleSplash {
         double y = MathHelper.floor_double(posY);
         double z = MathHelper.floor_double(posZ);
         BlockPos pos = new BlockPos(x, y, z);
-        if (worldObj.getBlockState(pos).getBlock() instanceof BlockModCauldron) {
+        if (worldObj.getBlockState(pos).getBlock() instanceof BlockCauldron) {
             x = posX - x;
             y = posY - y;
             z = posZ - z;
@@ -61,4 +60,5 @@ public class ParticleCauldronSplash extends ParticleSplash {
             return new ParticleCauldronSplash(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
         }
     }
+ 
 }

@@ -7,7 +7,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ParticleCauldronSmokeLarge extends ParticleCauldronSmokeNormal {
-
     protected ParticleCauldronSmokeLarge(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn, float scale) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn, scale);
     }
@@ -19,4 +18,5 @@ public class ParticleCauldronSmokeLarge extends ParticleCauldronSmokeNormal {
             return new ParticleCauldronSmokeLarge(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn, 2.5F);
         }
     }
+
 }

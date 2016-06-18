@@ -8,13 +8,11 @@ import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
-public class FluidsKaoliniteTest
-{
+public class FluidsKaoliniteTest {
     public static Fluid kaolinitePrecursor;
     public static BlockFluidClassic kaolinitePrecursorBlock;
 
-    public static void registerFluid()
-    {
+    public static void registerFluid() {
         String name = "kaolinite_precursor";
         String texturePrefix = Reference.MOD_ID + ":fluids/";
         ResourceLocation still = new ResourceLocation(texturePrefix + name + "_still");

@@ -12,8 +12,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class PacketCauldronWaterEffects implements IMessage
-{
+public class PacketCauldronWaterEffects implements IMessage {
     private Vec3d pos, motion;
     private double minY;
 

@@ -13,13 +13,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fluids.Fluid;
 
-public class ModelRegistration
-{
+public class ModelRegistration {
     public static final ModelResourceLocation CAULDRON_HANDLE = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "cauldron_handle"), null);
     public static final ResourceLocation CAULDRON_PERCIPITATE = new ResourceLocation(Reference.MOD_ID, "textures/blocks/percipitate_kaolinite.png");
 
-    public static void registerModels()
-    {
+    public static void registerModels() {
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock, FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
         registerBlockModel(BlocksKaoliniteTest.kaoliniteBlock);
         registerBlockModel(BlocksKaoliniteTest.cauldron_lit);
@@ -40,32 +38,25 @@ public class ModelRegistration
         registerIsolatedModel(CAULDRON_HANDLE);
     }
 
-    private static void registerIsolatedModel(ResourceLocation resourceLocations)
-    {
+    private static void registerIsolatedModel(ResourceLocation resourceLocations) {
         ModelLoader.registerItemVariants(ItemsKaoliniteTest.removalTool, resourceLocations);
     }
 
-    private static void registerFluidModel(Block block, Fluid fluid, String name)
-    {
+    private static void registerFluidModel(Block block, Fluid fluid, String name) {
         Item item = Item.getItemFromBlock(block);
-        if (item != null)
-        {
+        if (item != null) {
             ModelLoader.registerItemVariants(item);
             final ModelResourceLocation modelResourceLocation = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, name), fluid.getName());
-            ItemMeshDefinition mesh = new ItemMeshDefinition()
-            {
+            ItemMeshDefinition mesh = new ItemMeshDefinition() {
                 @Override
-                public ModelResourceLocation getModelLocation(ItemStack stack)
-                {
+                public ModelResourceLocation getModelLocation(ItemStack stack) {
                     return modelResourceLocation;
                 }
             };
             ModelLoader.setCustomMeshDefinition(item, mesh);
-            StateMapperBase mapper = new StateMapperBase()
-            {
+            StateMapperBase mapper = new StateMapperBase() {
                 @Override
-                protected ModelResourceLocation getModelResourceLocation(IBlockState state)
-                {
+                protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
                     return modelResourceLocation;
                 }
             };
@@ -73,25 +64,20 @@ public class ModelRegistration
         }
     }
 
-    private static void registerBlockModel(Block block)
-    {
+    private static void registerBlockModel(Block block) {
         Item item = Item.getItemFromBlock(block);
-        if (item != null)
-        {
+        if (item != null) {
             registerItemModelWithOptionalVariants(item, true);
         }
     }
 
-    private static void registerItemModel(Item item)
-    {
+    private static void registerItemModel(Item item) {
         registerItemModelWithOptionalVariants(item, false);
     }
 
-    private static void registerItemModelWithOptionalVariants(Item item, boolean hasVariants)
-    {
+    private static void registerItemModelWithOptionalVariants(Item item, boolean hasVariants) {
         String name = item.getRegistryName().toString();
-        if (hasVariants)
-        {
+        if (hasVariants) {
             ModelLoader.registerItemVariants(item, new ResourceLocation(name));
         }
         ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(new ResourceLocation(name), "inventory"));

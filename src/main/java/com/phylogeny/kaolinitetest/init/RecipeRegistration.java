@@ -7,10 +7,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-public class RecipeRegistration
-{
-    public static void recipeInit()
-    {
+public class RecipeRegistration {
+    public static void recipeInit() {
         Object[] inputs = new Object[6];
         inputs[0] = ItemsKaoliniteTest.kaoliniteDust;
         for (int i = 1; i < inputs.length; i++)
@@ -37,8 +35,7 @@ public class RecipeRegistration
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 1, ItemsKaoliniteTest.kaoliniteShard);
     }
 
-    public static ItemStack getKaolinitePrecursorBucketStack()
-    {
+    public static ItemStack getKaolinitePrecursorBucketStack() {
         UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
         ItemStack bucketStack = new ItemStack(bucket);
         FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
@@ -46,13 +43,11 @@ public class RecipeRegistration
         return bucketStack;
     }
 
-    private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs)
-    {
+    private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs) {
         GameRegistry.addShapelessRecipe(new ItemStack(output, outputAmount), inputs);
     }
 
-    private static void addSmeltingRecipe(Item input, Item output)
-    {
+    private static void addSmeltingRecipe(Item input, Item output) {
         GameRegistry.addSmelting(new ItemStack(input), new ItemStack(output), 0);
     }
 

@@ -8,14 +8,11 @@ import net.minecraft.item.Item;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class CreativeTabKaoliniteTest
-{
-    public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(Reference.MOD_ID)
-    {
+public class CreativeTabKaoliniteTest {
+    public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(Reference.MOD_ID) {
         @Override
         @SideOnly(Side.CLIENT)
-        public Item getTabIconItem()
-        {
+        public Item getTabIconItem() {
             return ItemsKaoliniteTest.crucible;
         }
     };
