@@ -60,12 +60,12 @@ public class RendererCauldron extends FastTESR<TileEntityCauldron> {
                 vb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
             }
         } else {
-            vb.finishDrawing();
-            bindTexture(ModelRegistration.CAULDRON_PERCIPITATE);
-            renderTexturedSide(new Vec3d(x2, y + 0.3135, z2), 0, 1, 0, 1, 1);
-            vb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-
-            bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+//            vb.finishDrawing();
+//            bindTexture(ModelRegistration.CAULDRON_PERCIPITATE);
+//            renderTexturedSide(new Vec3d(x2, y + 0.3135, z2), 0, 1, 0, 1, 1);
+//            vb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+//
+//            bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             IBakedModel origModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelManager().getModel(ModelRegistration.CAULDRON_HANDLE);
             VertexBuffer.setTranslation(x - cauldronTE.getPos().getX(), y - cauldronTE.getPos().getY(), z - cauldronTE.getPos().getZ());
 
