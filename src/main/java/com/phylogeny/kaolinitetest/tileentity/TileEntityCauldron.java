@@ -133,6 +133,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
     @Override
     public void update() {
+    	tickCounter++;
         if (worldObj.isRemote && tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy)) {
             rotateHandle();
         }
@@ -191,7 +192,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         if (buffer > 0 && bufferCounter < 10)
             bufferCounter++;
 
-        if (tickCounter++ % 10 != 0)
+        if (tickCounter % 10 != 0)
             return;
 
         buffer = bufferCounter = 0;
