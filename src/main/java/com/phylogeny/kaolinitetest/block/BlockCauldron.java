@@ -1,7 +1,6 @@
 package com.phylogeny.kaolinitetest.block;
 
 import java.util.List;
-import java.util.Random;
 
 import javax.annotation.Nullable;
 
@@ -38,6 +37,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -66,14 +66,14 @@ public class BlockCauldron extends Block {
     protected static final AxisAlignedBB AABB_LEG_3_SEGMENT_2 = new AxisAlignedBB(0.6875, 0.1875, 0.8125, 0.875, 0.25, 0.875);
     protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_1 = new AxisAlignedBB(0.8125, 0.1875, 0.1875, 0.875, 0.25, 0.3125);
     protected static final AxisAlignedBB AABB_LEG_4_SEGMENT_2 = new AxisAlignedBB(0.6875, 0.1875, 0.125, 0.875, 0.25, 0.1875);
-    protected static final AxisAlignedBB AABB_BASE = new AxisAlignedBB(0.125, 0.25, 0.125, 0.875, 0.3125, 0.875);
+    public static final AxisAlignedBB AABB_BASE = new AxisAlignedBB(0.125, 0.25, 0.125, 0.875, 0.3125, 0.875);
     protected static final AxisAlignedBB AABB_WALL_1 = new AxisAlignedBB(0.125, 0.3125, 0.1875, 0.1875, 0.875, 0.875);
     protected static final AxisAlignedBB AABB_WALL_2 = new AxisAlignedBB(0.8125, 0.3125, 0.125, 0.875, 0.875, 0.8125);
     protected static final AxisAlignedBB AABB_WALL_3 = new AxisAlignedBB(0.125, 0.3125, 0.125, 0.8125, 0.875, 0.1875);
     protected static final AxisAlignedBB AABB_WALL_4 = new AxisAlignedBB(0.1875, 0.3125, 0.8125, 0.875, 0.875, 0.875);
     protected static final AxisAlignedBB AABB_LOG_1 = new AxisAlignedBB(0.40625, -0.000625, 0.0625, 0.59375, 0.186875, 0.9375);
     protected static final AxisAlignedBB AABB_LOG_3 = new AxisAlignedBB(0.0625, 0.0, 0.375, 0.9375, 0.1875, 0.5625);
-    protected static final AxisAlignedBB AABB_WOOD = new AxisAlignedBB(0.125, 0.0, 0.125, 0.875, 0.1875, 0.875);
+    protected static final AxisAlignedBB AABB_WOOD = new AxisAlignedBB(0.0625, 0.0, 0.0625, 0.9375, 0.1875, 0.9375);
     protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2, AABB_LEG_3_SEGMENT_1,
         AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4, AABB_WOOD};
     public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
@@ -100,7 +100,11 @@ public class BlockCauldron extends Block {
     @Override
     public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn) {
         for (int i = 0; i < BOXES.length; i++) {
-            addCollisionBoxToList(pos, entityBox, collidingBoxes, BOXES[i]);
+            AxisAlignedBB box = BOXES[i];
+            if (box.equals(AABB_WOOD)) {
+                box = box.expand(-0.0625, 0, -0.0625);
+            }
+            addCollisionBoxToList(pos, entityBox, collidingBoxes, box);
         }
     }
 
@@ -132,10 +136,18 @@ public class BlockCauldron extends Block {
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            cauldronTE.liftHandle();
+        }
+    }
+
+    private TileEntityCauldron getCauldronTileEntity(World worldIn, BlockPos pos) {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
-            ((TileEntityCauldron) tileEntity).liftHandle();
+            return (TileEntityCauldron) tileEntity;
         }
+        return null;
     }
 
     @Override
@@ -175,19 +187,34 @@ public class BlockCauldron extends Block {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if (heldItem == null)
-            return true;
-
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if (tileEntity == null || !(tileEntity instanceof TileEntityCauldron))
             return true;
 
         TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
 
-        Item item = heldItem.getItem();
         int level = getWaterLevel(state);
-
+        boolean fullOfSolidPrecipitate = cauldronTE.hasMaximunSolidPrecipitate();
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
+
+        if (level == 0 && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtBase && lookObject.sideHit == EnumFacing.UP && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
+            ItemStack stack;
+            if (heldItem == null) {
+                stack = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
+            } else {
+                stack = heldItem.copy();
+                stack.stackSize = Math.min(stack.stackSize + 1, stack.getMaxStackSize());
+            }
+            playerIn.setHeldItem(hand, stack);
+            cauldronTE.setProgressTicks(0);
+            return true;
+        }
+
+        if (heldItem == null)
+            return true;
+
+        Item item = heldItem.getItem();
+
         if (lookObject != null && lookObject.isLookingAtLogs) {
             return interactWithLogs(worldIn, pos, playerIn, hand, heldItem, item, level, lookObject);
         }
@@ -196,7 +223,7 @@ public class BlockCauldron extends Block {
         boolean isPureWater = cauldronTE.isPureWater();
 
         if (item == Items.BUCKET) {
-            if (level != 3 || !(isPrecursor || isPureWater))
+            if (level != 3 || !(isPrecursor || isPureWater) || (cauldronTE.hasSolidPrecipitate() && !fullOfSolidPrecipitate))
                 return true;
             collectLiquid(worldIn, pos, state, playerIn, hand, heldItem, isPrecursor);
             return true;
@@ -206,6 +233,8 @@ public class BlockCauldron extends Block {
             return item == Items.WATER_BUCKET;
 
         if (item == Items.WATER_BUCKET || item == ItemsKaoliniteTest.supernatantAndPrecipitateBucket) {
+            if (fullOfSolidPrecipitate)
+                return true;
             if (level < 3 && !worldIn.isRemote) {
                 if (!playerIn.capabilities.isCreativeMode) {
                     playerIn.setHeldItem(hand, new ItemStack(item == Items.WATER_BUCKET ? Items.BUCKET : ItemsKaoliniteTest.bucketPrecipitate));
@@ -319,30 +348,25 @@ public class BlockCauldron extends Block {
     }
 
     private void setCauldronBurning(World worldIn, BlockPos pos, int level, Block cauldronBlock) {
-        int countAluminum = 0;
-        int countSilica = 0;
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
-            TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
-            countAluminum = cauldronTE.getCountAluminum();
-            countSilica = cauldronTE.getCountSilica();
+        NBTTagCompound cauldronNBT = new NBTTagCompound();
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            cauldronTE.writeCauldronToNBT(cauldronNBT);
         }
-        setWaterLevel(worldIn, pos, cauldronBlock.getDefaultState().getActualState(worldIn, pos), level, false);
-        tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
-            TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
-            cauldronTE.setCountAluminum(countAluminum);
-            cauldronTE.setCountSilica(countSilica);
+        worldIn.setBlockState(pos, cauldronBlock.getDefaultState().getActualState(worldIn, pos).withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 3))), 2);
+        cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            cauldronTE.readCauldronFromNBT(cauldronNBT);
         }
     }
 
-    private void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
+    public void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
         if (!worldIn.isRemote)
             return;
         Vec3d particlePos;
         if (lookObject != null) {
             Vec3d hit = lookObject.hitVec;
-            particlePos = new Vec3d(hit.xCoord + Math.random() * 0.01, hit.yCoord + Math.random() * 0.01, hit.zCoord + Math.random() * 0.01);
+            particlePos = new Vec3d(hit.xCoord + Math.random() * 0.02 - 0.01, hit.yCoord + Math.random() * 0.02 - 0.01, hit.zCoord + Math.random() * 0.01);
             for (IParticleFactory particleFactory : particleFactories) {
                 ClientHelper.spawnParticle(worldIn, particlePos, particleFactory);
             }
@@ -352,24 +376,14 @@ public class BlockCauldron extends Block {
         for (int k = 0; k < particleCount; ++k) {
             while (true) {
                 particleXZPos = new Vec3d(Math.random(), 0, Math.random());
-                if (particleXZPos.distanceTo(logXZCenter) > 0.4375)
+                if (particleXZPos.distanceTo(logXZCenter) > (AABB_WOOD.maxZ - AABB_WOOD.minZ) / 2)
                     continue;
-                particlePos = new Vec3d(pos.getX() + particleXZPos.xCoord, pos.getY() + Math.random() * (0.0625 - 0.0625) + 0.0625, pos.getZ() + particleXZPos.zCoord).addVector(0, 0.0625 * 2, 0);
+                particlePos = new Vec3d(pos.getX() + particleXZPos.xCoord, pos.getY() + Math.random() * (0.1875 - 0.125) + 0.125, pos.getZ() + particleXZPos.zCoord);
                 for (IParticleFactory particleFactory : particleFactories) {
                     ClientHelper.spawnParticle(worldIn, particlePos, particleFactory);
                 }
                 break;
             }
-        }
-    }
-
-    @Override
-    public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-        if (isBurning) {
-            if (rand.nextDouble() < 0.1D) {
-                worldIn.playSound(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
-            }
-            spawnParticlesForLogs(worldIn, pos, null, 5, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory(), new ParticleCauldronSmokeNormal.Factory(), new ParticleCauldronSmokeNormal.Factory());
         }
     }
 
@@ -381,12 +395,16 @@ public class BlockCauldron extends Block {
     public void fillWithRain(World worldIn, BlockPos pos) {
         if (worldIn.rand.nextInt(20) == 1) {
             float f = worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos);
-
             if (worldIn.getBiomeProvider().getTemperatureAtHeight(f, pos.getY()) >= 0.15F) {
                 IBlockState state = worldIn.getBlockState(pos);
-
-                if (getWaterLevel(state) < 3) {
-                    worldIn.setBlockState(pos, state.cycleProperty(LEVEL), 2);
+                int level = getWaterLevel(state);
+                if (level < 3) {
+                    TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+                    if (cauldronTE != null) {
+                        if (cauldronTE.isPureWater() && !cauldronTE.hasSolidPrecipitate()) {
+                            setWaterLevel(worldIn, pos, state, level + 1, true);
+                        }
+                    }
                 }
             }
         }
@@ -397,7 +415,19 @@ public class BlockCauldron extends Block {
     }
 
     public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level, boolean allowItemPickup) {
+        double waterTemp = 0;
+        int progressTicks = 0;
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            waterTemp = cauldronTE.getWaterTemp();
+            progressTicks = cauldronTE.getProgressTicks();
+        }
         worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 3))), 2);
+        cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            cauldronTE.setWaterTemp(waterTemp);
+            cauldronTE.setProgressTicks(progressTicks);
+        }
         if (allowItemPickup)
             allowItemPickup(worldIn, pos, state, true, true);
     }
@@ -450,7 +480,6 @@ public class BlockCauldron extends Block {
         BlockPos pos = event.getTarget().getBlockPos();
         ExtendedRayTraceResult rayTraceResult = getExtendedRayTraceResultFromPlayer(player, pos);
         if (rayTraceResult != null) {
-            int i = BOXES.length - 1;
             if (rayTraceResult.isLookingAtLogs) {
                 event.setCanceled(true);
                 GlStateManager.enableBlend();
@@ -464,7 +493,7 @@ public class BlockCauldron extends Block {
                 double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
                 double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
                 double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
-                RenderGlobal.drawSelectionBoundingBox(BOXES[i].offset(pos).expand(0.0625, 0, 0.0625).expandXyz(0.0020000000949949026D).offset(-d0, -d1, -d2));
+                RenderGlobal.drawSelectionBoundingBox(AABB_WOOD.offset(pos).expandXyz(0.0020000000949949026D).offset(-d0, -d1, -d2));
 
                 GlStateManager.depthMask(true);
                 GlStateManager.enableTexture2D();
@@ -489,8 +518,7 @@ public class BlockCauldron extends Block {
         double shortestDistance = Double.MAX_VALUE;
         int index = 0;
         for (int i = 0; i < BOXES.length; i++) {
-            AxisAlignedBB box = i == BOXES.length - 1 ? BOXES[i].expand(0.0625, 0, 0.0625) : BOXES[i];
-            RayTraceResult rayTraceResult = box.offset(pos).calculateIntercept(start, end);
+            RayTraceResult rayTraceResult = BOXES[i].offset(pos).calculateIntercept(start, end);
             if (rayTraceResult != null) {
                 double distance = start.distanceTo(rayTraceResult.hitVec);
                 if (distance < shortestDistance) {
@@ -500,15 +528,16 @@ public class BlockCauldron extends Block {
                 }
             }
         }
-        return lookObject == null ? null : new ExtendedRayTraceResult(lookObject, index == BOXES.length - 1);
+        return lookObject == null ? null : new ExtendedRayTraceResult(lookObject, index == 13, index == 8);
     }
 
     private static class ExtendedRayTraceResult extends RayTraceResult {
-        private boolean isLookingAtLogs;
+        private boolean isLookingAtLogs, isLookingAtBase;
 
-        public ExtendedRayTraceResult(RayTraceResult rayTraceResult, boolean isLookingAtLogs) {
+        public ExtendedRayTraceResult(RayTraceResult rayTraceResult, boolean isLookingAtLogs, boolean isLookingAtBase) {
             super(rayTraceResult.hitVec, rayTraceResult.sideHit, rayTraceResult.getBlockPos());
             this.isLookingAtLogs = isLookingAtLogs;
+            this.isLookingAtBase = isLookingAtBase;
         }
     }
 

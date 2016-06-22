@@ -15,7 +15,7 @@ import net.minecraftforge.fluids.Fluid;
 
 public class ModelRegistration {
     public static final ModelResourceLocation CAULDRON_HANDLE = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "cauldron_handle"), null);
-    public static final ResourceLocation CAULDRON_PERCIPITATE = new ResourceLocation(Reference.MOD_ID, "textures/blocks/percipitate_kaolinite.png");
+    public static final ResourceLocation CAULDRON_PRECIPITATE = new ResourceLocation(Reference.MOD_ID, "textures/blocks/precipitate_kaolinite.png");
 
     public static void registerModels() {
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock, FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");

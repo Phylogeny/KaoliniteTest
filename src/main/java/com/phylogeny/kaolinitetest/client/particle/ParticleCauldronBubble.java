@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ParticleCauldronBubble extends ParticleBubble {
     protected ParticleCauldronBubble(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
@@ -32,7 +33,7 @@ public class ParticleCauldronBubble extends ParticleBubble {
         BlockPos pos = new BlockPos(posX, posY, posZ);
         IBlockState state = worldObj.getBlockState(pos);
         if (state.getBlock() instanceof BlockCauldron) {
-            AxisAlignedBB waterBox = BlockCauldron.AABB_WATER.offset(pos).expandXyz(-0.06);
+            AxisAlignedBB waterBox = BlockCauldron.AABB_WATER.offset(pos).contract(0.06);
             if (posY <= waterBox.minY) {
                 posY = waterBox.minY;
                 motionY = 0;

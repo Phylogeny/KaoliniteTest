@@ -11,22 +11,34 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ParticleCauldronSplash extends ParticleSplash {
+    private static final double MAX_HEIGHT = 0.15;
+
     protected ParticleCauldronSplash(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
     }
 
     @Override
     public void onUpdate() {
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+        motionY -= particleGravity;
+        moveEntity(motionX, motionY, motionZ);
+        motionX *= 0.9800000190734863D;
+        motionY *= 0.9800000190734863D;
+        motionZ *= 0.9800000190734863D;
+
         double x = MathHelper.floor_double(posX);
         double y = MathHelper.floor_double(posY);
         double z = MathHelper.floor_double(posZ);
-        BlockPos pos = new BlockPos(x, y, z);
-        if (worldObj.getBlockState(pos).getBlock() instanceof BlockCauldron) {
+        boolean isCauldron = worldObj.getBlockState(new BlockPos(x, y, z)).getBlock() instanceof BlockCauldron;
+        y = posY - y;
+        if (isCauldron) {
             x = posX - x;
-            y = posY - y;
             z = posZ - z;
-            if (y >= 0.1875 && x <= 0.875 && x >= 0.125 && z <= 0.875 && z >= 0.125) {
+            if (y >= MAX_HEIGHT && x <= 0.9375 && x >= 0.0625 && z <= 0.9375 && z >= 0.0625) {
                 isCollided = true;
                 motionY = 0;
                 motionX *= 1.1;
@@ -34,22 +46,14 @@ public class ParticleCauldronSplash extends ParticleSplash {
             }
         }
 
-        this.prevPosX = this.posX;
-        this.prevPosY = this.posY;
-        this.prevPosZ = this.posZ;
-        this.motionY -= this.particleGravity;
-        this.moveEntity(this.motionX, this.motionY, this.motionZ);
-        this.motionX *= 0.9800000190734863D;
-        this.motionY *= 0.9800000190734863D;
-        this.motionZ *= 0.9800000190734863D;
+        if (particleMaxAge-- <= 0)
+            setExpired();
 
-        if (this.particleMaxAge-- <= 0) {
-            this.setExpired();
-        }
-
-        if (this.isCollided) {
-            this.motionX *= 0.699999988079071D;
-            this.motionZ *= 0.699999988079071D;
+        if (isCollided) {
+            motionX *= 0.699999988079071D;
+            motionZ *= 0.699999988079071D;
+            if (isCauldron && y > MAX_HEIGHT)
+                moveEntity(0, MAX_HEIGHT - y, 0);
         }
     }
 
@@ -60,5 +64,5 @@ public class ParticleCauldronSplash extends ParticleSplash {
             return new ParticleCauldronSplash(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
         }
     }
- 
+
 }

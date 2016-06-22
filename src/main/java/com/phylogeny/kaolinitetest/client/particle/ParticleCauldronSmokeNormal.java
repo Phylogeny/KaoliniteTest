@@ -11,8 +11,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
-    private static final double MAX_HEIGHT = 0.1875;
+    private static final double MAX_HEIGHT = 0.15;
 
     protected ParticleCauldronSmokeNormal(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double xSpeedIn, double ySpeedIn, double zSpeedIn, float scale) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn, scale);
@@ -20,24 +21,24 @@ public class ParticleCauldronSmokeNormal extends ParticleSmokeNormal {
 
     @Override
     public void onUpdate() {
+        super.onUpdate();
         double x = MathHelper.floor_double(posX);
         double y = MathHelper.floor_double(posY);
         double z = MathHelper.floor_double(posZ);
-        BlockPos pos = new BlockPos(x, y, z);
-        if (worldObj.getBlockState(pos).getBlock() instanceof BlockCauldron) {
+        boolean isCauldron = worldObj.getBlockState(new BlockPos(x, y, z)).getBlock() instanceof BlockCauldron;
+        y = posY - y;
+        if (isCauldron) {
             x = posX - x;
-            double y2 = posY - y;
             z = posZ - z;
-            if (y2 >= MAX_HEIGHT && x <= 0.875 && x >= 0.125 && z <= 0.875 && z >= 0.125) {
+            if (y >= MAX_HEIGHT && x <= 0.9375 && x >= 0.0625 && z <= 0.9375 && z >= 0.0625) {
                 isCollided = true;
                 motionY = 0;
                 motionX *= 1.1;
                 motionZ *= 1.1;
             }
         }
-        super.onUpdate();
-        if (posY - y > MAX_HEIGHT)
-            posY = y + MAX_HEIGHT;
+        if (isCauldron && isCollided && y > MAX_HEIGHT)
+            moveEntity(0, MAX_HEIGHT - y, 0);
     }
 
     @SideOnly(Side.CLIENT)
