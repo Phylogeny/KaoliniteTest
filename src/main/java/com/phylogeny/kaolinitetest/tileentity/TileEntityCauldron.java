@@ -133,7 +133,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
     @Override
     public void update() {
-    	tickCounter++;
+        tickCounter++;
         if (worldObj.isRemote && tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy)) {
             rotateHandle();
         }
@@ -159,12 +159,14 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 //                int waterAmount = (int) (1000 * (3 / (double) waterLevel));
 //                waterTemp += (SECECONDS_PER_TICK * KILOWATTS) / (SPECIFIC_HEAT_WATER * waterAmount * LITERS_PER_MILIBUCKET);
                 waterTemp += 0.133333333;
+                if (waterTemp > TEMP_LIMIT)
+                    waterTemp = TEMP_LIMIT;
             } else {
 //                waterTemp = TEMP_SURROUNDING + ((waterTemp - TEMP_SURROUNDING) * Math.exp(-THERMAL_CONDUCTIVITY_WATER * (SECECONDS_PER_TICK / 60.0D)));
-            	waterTemp -= 0.0133333333;
+                waterTemp -= 0.0133333333;
+                if (waterTemp < TEMP_SURROUNDING)
+                    waterTemp = TEMP_SURROUNDING;
             }
-            if (waterTemp > TEMP_LIMIT)
-                waterTemp = TEMP_LIMIT;
         } else {
             waterTemp = TEMP_SURROUNDING;
         }
