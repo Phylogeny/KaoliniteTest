@@ -42,7 +42,7 @@ public class ParticleCauldronPrecipitate extends Particle {
         particleAlpha = 0;
         setParticleTextureIndex(0);
         particleMaxAge = Integer.MAX_VALUE;
-        particleScale = 1;
+        particleScale = rand.nextFloat() * 0.25F + 0.75F;
     }
 
     @Override
