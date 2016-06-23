@@ -237,10 +237,11 @@ public class BlockCauldron extends Block {
             return true;
         }
 
+        boolean isFilledBucket = item == Items.WATER_BUCKET || ItemStack.areItemStacksEqual(heldItem, getLiquidBucket(true));
         if (isPrecursor)
-            return item == Items.WATER_BUCKET;
+            return isFilledBucket;
 
-        if (item == Items.WATER_BUCKET) {
+        if (isFilledBucket) {
             if (fullOfSolidPrecipitate)
                 return true;
             if (level < 3 && !worldIn.isRemote) {
@@ -250,7 +251,16 @@ public class BlockCauldron extends Block {
                 playerIn.addStat(StatList.CAULDRON_FILLED);
                 setWaterLevel(worldIn, pos, state, 3);
             }
-            cauldronTE.setPureWater();
+            if (item == Items.WATER_BUCKET) {
+                cauldronTE.setPureWater();
+            } else {
+                TileEntity tileEntity2 = worldIn.getTileEntity(pos);
+                if (tileEntity2 != null && tileEntity2 instanceof TileEntityCauldron) {
+                    TileEntityCauldron cauldronTE2 = (TileEntityCauldron) tileEntity2;
+                    cauldronTE2.setCountAluminum(7);
+                    cauldronTE2.setCountSilica(7);
+                }
+            }
             playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
         } else if (item == Items.GLASS_BOTTLE) {
@@ -429,8 +439,8 @@ public class BlockCauldron extends Block {
         }
     }
 
-    private ItemStack getLiquidBucket(boolean isPrecursor) {
-        if (isPrecursor) {
+    private ItemStack getLiquidBucket(boolean returnPrecursor) {
+        if (returnPrecursor) {
             UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
             ItemStack bucketStack = new ItemStack(bucket);
             FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
