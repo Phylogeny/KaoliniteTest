@@ -120,7 +120,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     }
 
     public boolean hasSolidPrecipitate() {
-        return getSolidPrecipitateLevel() == BlockCauldron.AABB_BASE.maxY;
+        return getSolidPrecipitateLevel() > BlockCauldron.AABB_BASE.maxY;
     }
 
     public boolean hasMaximunSolidPrecipitate() {
