@@ -16,6 +16,7 @@ import net.minecraftforge.fluids.Fluid;
 public class ModelRegistration {
     public static final ModelResourceLocation CAULDRON_HANDLE = new ModelResourceLocation(new ResourceLocation(Reference.MOD_ID, "cauldron_handle"), null);
     public static final ResourceLocation CAULDRON_PRECIPITATE = new ResourceLocation(Reference.MOD_ID, "textures/blocks/precipitate_kaolinite.png");
+    public static final ResourceLocation CAULDRON_DISOLVE_DUST = new ResourceLocation(Reference.MOD_ID, "textures/blocks/disolve_dust.png");
 
     public static void registerModels() {
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock, FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
@@ -26,8 +27,6 @@ public class ModelRegistration {
         registerItemModel(ItemsKaoliniteTest.silicaDust);
         registerItemModel(ItemsKaoliniteTest.kaoliniteDust);
         registerItemModel(ItemsKaoliniteTest.crucibleClayDust);
-        registerItemModel(ItemsKaoliniteTest.supernatantAndPrecipitateBucket);
-        registerItemModel(ItemsKaoliniteTest.bucketPrecipitate);
         registerItemModel(ItemsKaoliniteTest.kaoliniteBall);
         registerItemModel(ItemsKaoliniteTest.kaoliniteBrick);
         registerItemModel(ItemsKaoliniteTest.kaoliniteShard);

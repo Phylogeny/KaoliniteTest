@@ -2,9 +2,6 @@ package com.phylogeny.kaolinitetest.init;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.ForgeModContainer;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class RecipeRegistration {
@@ -27,20 +24,9 @@ public class RecipeRegistration {
         //TODO require AL furnace at a minimum temp (real min temp is 3000 deg F) and for an extended period of time
         addSmeltingRecipe(ItemsKaoliniteTest.unfiredCrucible, ItemsKaoliniteTest.crucible);
 
-        //TODO require AL furnace at a minimum temp (real min temp is 300 - 400 deg F) and for an extended period of time
-        GameRegistry.addSmelting(getKaolinitePrecursorBucketStack(), new ItemStack(ItemsKaoliniteTest.supernatantAndPrecipitateBucket), 0);
-
         //this is just for demonstration - in AL, kaolinite bricks/shards will be pulverized, not crafted
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 7, ItemsKaoliniteTest.kaoliniteBrick);
             addShapelessRecipe(ItemsKaoliniteTest.kaoliniteDust, 1, ItemsKaoliniteTest.kaoliniteShard);
-    }
-
-    public static ItemStack getKaolinitePrecursorBucketStack() {
-        UniversalBucket bucket = ForgeModContainer.getInstance().universalBucket;
-        ItemStack bucketStack = new ItemStack(bucket);
-        FluidStack fluidStack = new FluidStack(FluidsKaoliniteTest.kaolinitePrecursor, 1000);
-        bucket.fill(bucketStack, fluidStack, true);
-        return bucketStack;
     }
 
     private static void addShapelessRecipe(Item output, int outputAmount, Object... inputs) {

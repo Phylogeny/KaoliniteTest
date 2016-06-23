@@ -1,13 +1,17 @@
 package com.phylogeny.kaolinitetest.tileentity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.phylogeny.kaolinitetest.KaoliniteTest;
 import com.phylogeny.kaolinitetest.block.BlockCauldron;
-import com.phylogeny.kaolinitetest.client.helper.ClientHelper;
+import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronDisolveDust;
+import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronFlame;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronPrecipitate;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
-import com.phylogeny.kaolinitetest.entity.EntityItemKaolinitePrecursor;
+import com.phylogeny.kaolinitetest.client.util.ClientHelper;
 import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.SoundsKaoliniteTest;
@@ -15,20 +19,28 @@ import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.IParticleFactory;
-import net.minecraft.client.particle.ParticleFlame;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TileEntityCauldron extends TileEntity implements ITickable {
-    private int tickCounter, bufferCounter, buffer, countAluminum, countSilica, progressTicks;
+    private static final String DUST_DEATH_COUNTER = "dustDeathCounter";
+    private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
+    private float dustBufferTotalAlpha;
+    private int tickCounter, countAluminum, countSilica, progressTicks, dustBufferCount;
     private boolean handleRebounded, handleHasEnergy;
     private static final float TICKS_PRECIPITATION_TOTAL = 1200;
     private static final float TICKS_PRECIPITATION_DELAY = 600;
@@ -88,7 +100,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     }
 
     public boolean isPrecursor() {
-        return countAluminum == 7 && countSilica == 7;
+        return countAluminum == 7 && countSilica == 7 && dustBufferCount == 0;
     }
 
     public boolean isPureWater() {
@@ -134,8 +146,19 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     @Override
     public void update() {
         tickCounter++;
-        if (worldObj.isRemote && tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy)) {
-            rotateHandle();
+        if (worldObj.isRemote) {
+            if (tickCounter > 1 && (handleRotation > MAX_HANDLE_ROTATION || handleHasEnergy))
+                rotateHandle();
+        }
+
+        for (int i = 0; i < dustBuffer.size(); i++) {
+            DustBufferElement bufferElement = dustBuffer.get(i);
+            bufferElement.increasePrecipitateAlpha();
+            if (bufferElement.tickRemaining == 0) {
+                dustBuffer.remove(i);
+                dustBufferCount -= bufferElement.amount;
+                i--;
+            }
         }
 
         IBlockState state = worldObj.getBlockState(getPos());
@@ -147,7 +170,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
         if (worldObj.isRemote && cauldron == BlocksKaoliniteTest.cauldron_lit && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
             IParticleFactory[] particles = new IParticleFactory[4];
-            particles [0] = new ParticleFlame.Factory();
+            particles [0] = new ParticleCauldronFlame.Factory();
             for (int i = 1; i < 4; i++) {
                 particles[i] = new ParticleCauldronSmokeNormal.Factory();
             }
@@ -180,57 +203,93 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         }
 
         if (isPrecursor()) {
-            if (worldObj.isRemote && progressTicks > TICKS_PRECIPITATION_DELAY
-                    && progressTicks < TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL) {
+            if (worldObj.isRemote && progressTicks > TICKS_PRECIPITATION_DELAY && progressTicks < TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL) {
                 AxisAlignedBB box = cauldron.AABB_WATER;
                 Vec3d particlePos = new Vec3d(pos.getX() + Math.random() * (box.maxX - box.minX) + box.minX, pos.getY() +
                         Math.random() * (box.maxY - box.minY) + box.minY, pos.getZ() + Math.random() * (box.maxZ - box.minZ) + box.minZ);
                 ClientHelper.spawnParticle(worldObj, particlePos, new ParticleCauldronPrecipitate.Factory());
             }
-            buffer = bufferCounter = 0;
             return;
         }
-
-        if (buffer > 0 && bufferCounter < 10)
-            bufferCounter++;
-
-        if (tickCounter % 10 != 0)
-            return;
-
-        buffer = bufferCounter = 0;
-        if (worldObj.isRemote)
-            return;
 
         if (waterLevel != 3)
             return;
-
-        AxisAlignedBB waterBox = cauldron.getWaterCollisionBox(state).offset(getPos());
-        for (EntityItemKaolinitePrecursor entityItem : worldObj.getEntitiesWithinAABB(EntityItemKaolinitePrecursor.class, waterBox)) {
-            if (consumeItem(entityItem))
-                break;
-        }
-        if (countAluminum == 7 || countSilica == 7) {
-            cauldron.allowItemPickup(worldObj, pos, state, countAluminum == 7, countSilica == 7);
+        if (!worldObj.isRemote) {
+            AxisAlignedBB waterBox = cauldron.getWaterCollisionBox(state).offset(getPos());
+            for (EntityItem entityItem : worldObj.getEntitiesWithinAABB(EntityItem.class, waterBox)) {
+                consumeDust(entityItem);
+            }
         }
     }
 
-    private boolean consumeItem(EntityItemKaolinitePrecursor entityItem) {
+    private void consumeDust(EntityItem entityItem) {
         ItemStack stack = entityItem.getEntityItem();
-        if (stack != null) {
-            if (stack.getItem() == ItemsKaoliniteTest.aluminumDust && countAluminum < 7) {
-                entityItem.setDead();
-                if (!worldObj.isRemote)
-                    onItemConsumed(true);
-                return true;
-            }
-            if (stack.getItem() == ItemsKaoliniteTest.silicaDust && countSilica < 7) {
-                entityItem.setDead();
-                if (!worldObj.isRemote)
-                    onItemConsumed(false);
-                return true;
+        if (stack != null && stack.getItem() != null) {
+            if (stack.hasTagCompound() && stack.getTagCompound().hasKey(DUST_DEATH_COUNTER)) {
+                int count = stack.getTagCompound().getInteger(DUST_DEATH_COUNTER) - 1;
+                if (count > 0) {
+                    stack.getTagCompound().setInteger(DUST_DEATH_COUNTER, count);
+                } else {
+                    entityItem.setDead();
+                }
+            } else {
+                Vec3d dustPos = new Vec3d(entityItem.posX, entityItem.posY, entityItem.posZ);
+                Vec3d dustMotion = new Vec3d(entityItem.motionX, entityItem.motionY, entityItem.motionZ);
+                float dustWidth = entityItem.width;
+                double dustMinY = entityItem.getEntityBoundingBox().minY;
+                if (stack.getItem() == ItemsKaoliniteTest.aluminumDust && countAluminum < 7) {
+                    int amount = Math.min(stack.stackSize, 7 - countAluminum);
+                    decrementStack(stack, amount);
+                    onItemConsumed(true, amount, dustPos, dustMotion, dustWidth, dustMinY);
+                } else if (stack.getItem() == ItemsKaoliniteTest.silicaDust && countSilica < 7) {
+                    int amount = Math.min(stack.stackSize, 7 - countSilica);
+                    decrementStack(stack, amount);
+                    onItemConsumed(false, amount, dustPos, dustMotion, dustWidth, dustMinY);
+                }
             }
         }
-        return false;
+    }
+
+    private void decrementStack(ItemStack stack, int amount) {
+        if (stack.stackSize > amount) {
+            stack.stackSize -= amount;
+        } else {
+            if (!stack.hasTagCompound())
+                stack.setTagCompound(new NBTTagCompound());
+            stack.getTagCompound().setInteger(DUST_DEATH_COUNTER, 1);
+        }
+    }
+
+    public void onItemConsumed(boolean isAluminum, int amount, Vec3d dustPos, Vec3d dustMotion, float dustWidth, double dustMinY) {
+        dustBufferCount += amount;
+        dustBuffer.add(new DustBufferElement(amount));
+        dustBufferTotalAlpha += 0.06022408963585434173669467787115F * amount;
+        if (isAluminum) {
+            countAluminum += amount;
+        } else {
+            countSilica += amount;
+        }
+
+        if (worldObj.isRemote) {
+            float f1 = MathHelper.floor_double(dustMinY);
+            for (int i = 0; i < (1.0F + dustWidth * 20.0F) * amount; ++i) {
+                ClientHelper.spawnParticle((new ParticleCauldronDisolveDust.Factory()).getEntityFX(0, worldObj, dustPos.xCoord,
+                        BlockCauldron.AABB_WATER.offset(pos).maxY - 0.125, dustPos.zCoord, worldObj.rand.nextDouble() * -0.01 + 0.005, worldObj.rand.nextDouble() * -0.002, worldObj.rand.nextDouble() * -0.01 + 0.005, new int[0]));
+            }
+            for (int j = 0; j < 1.0F + dustWidth * 20.0F; ++j) {
+                float f4 = (worldObj.rand.nextFloat() * 2.0F - 1.0F) * dustWidth;
+                float f5 = (worldObj.rand.nextFloat() * 2.0F - 1.0F) * dustWidth;
+                worldObj.spawnParticle(EnumParticleTypes.WATER_SPLASH, dustPos.xCoord + f4, f1 + 1.0F, dustPos.zCoord + f5,
+                        dustMotion.xCoord, dustMotion.yCoord, dustMotion.zCoord, new int[0]);
+            }
+        } else {
+            float f = MathHelper.sqrt_double(dustMotion.xCoord * dustMotion.xCoord * 0.20000000298023224D + dustMotion.yCoord * dustMotion.yCoord + dustMotion.zCoord * dustMotion.zCoord * 0.20000000298023224D) * 0.2F;
+            if (f > 1.0F)
+                f = 1.0F;
+            worldObj.playSound((EntityPlayer)null, dustPos.xCoord, dustPos.yCoord, dustPos.zCoord, SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.NEUTRAL, f, 1.0F + (worldObj.rand.nextFloat() - worldObj.rand.nextFloat()) * 0.4F);
+            KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronConsumeItem(pos, isAluminum, amount, dustPos, dustMotion, dustWidth, dustMinY),
+                    new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
+        }
     }
 
     private void rotateHandle() {
@@ -248,21 +307,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
                     handleHasEnergy = false;
                 }
             }
-        }
-    }
-
-    public void onItemConsumed(boolean isAluminum) {
-        buffer++;
-        tickCounter = 1;
-        if (isAluminum) {
-            countAluminum++;
-        } else {
-            countSilica++;
-        }
-
-        if (!worldObj.isRemote) {
-            KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronConsumeItem(pos, isAluminum),
-                    new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
         }
     }
 
@@ -299,7 +343,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             /*
              * int startColor = (40 / 255.0F);
              * int stageCount = TICKS_TO_COMPLETION;
-             * float incrimentColor = ((255 - start) / stageCount) / 255.0F;
+             * float incrimentColor = (255 - start) / (stageCount * 255.0F);
              * return progressTicks * incrimentColor;
              */
             return progressTicks < TICKS_PRECIPITATION_DELAY ? 0 : getPrecipitationProgressTicks() * 0.00070261437908496732026143790849673F;
@@ -307,11 +351,10 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         /*
          * int startColor = (40 / 255.0F);
          * int stageCount = 14;
-         * float incrimentColor = ((255 - start) / stageCount) / 255.0F;
-         * float interIncrimentColor = incrimentColor / 10.0F;
-         * return 1 - (startColor + (countAluminum + countSilica - buffer) * incrimentColor + bufferCounter * interIncrimentColor);
+         * float incrimentColor = (255 - start) / (stageCount * 255.0F);
+         * return 1 - (startColor + (countAluminum + countSilica) * incrimentColor - dustBufferTotalAlpha);
          */
-        return 1 - (0.15686274509803921568627450980392F + (countAluminum + countSilica - buffer) * 0.06022408963585434173669467787115F + bufferCounter * 0.00602240896358543417366946778712F);
+        return 1 - (0.15686274509803921568627450980392F + (countAluminum + countSilica) * 0.06022408963585434173669467787115F - dustBufferTotalAlpha);
     }
 
     public float getHandleRotation() {
@@ -322,6 +365,23 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         handleRotation = 0;
         handleHasEnergy = true;
         tickCounter = 0;
+    }
+
+    private class DustBufferElement {
+        private int amount, tickRemaining;
+
+        public DustBufferElement(int amount) {
+            this.amount = amount;
+            tickRemaining = 40;
+        }
+
+        private void increasePrecipitateAlpha() {
+            if (tickRemaining-- > 0) {
+                dustBufferTotalAlpha -= amount * (215 / (14 * 255 * 40.0));
+                if (dustBufferTotalAlpha < 0)
+                    dustBufferTotalAlpha = 0;
+            }
+        }
     }
 
 }
