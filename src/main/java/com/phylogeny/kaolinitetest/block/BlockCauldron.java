@@ -80,6 +80,7 @@ public class BlockCauldron extends Block {
     protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2, AABB_LEG_3_SEGMENT_1,
         AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4, AABB_WOOD};
     public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
+    public static final AxisAlignedBB AABB_PRECIPITATE = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.375, 0.8125);
     protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.875, 0.875, 0.875);
 
     public BlockCauldron(boolean isBurning) {
@@ -205,7 +206,7 @@ public class BlockCauldron extends Block {
         boolean fullOfSolidPrecipitate = cauldronTE.hasMaximunSolidPrecipitate();
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
 
-        if (level == 0 && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtBase && lookObject.sideHit == EnumFacing.UP && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
+        if (level == 0 && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtPrecipitate && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
             ItemStack stack;
             if (heldItem == null) {
                 stack = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
@@ -553,16 +554,21 @@ public class BlockCauldron extends Block {
                 }
             }
         }
-        return lookObject == null ? null : new ExtendedRayTraceResult(lookObject, index == 13, index == 8);
+        boolean isLookingAtPrecipitate = false;
+        RayTraceResult rayTraceResult = AABB_PRECIPITATE.offset(pos).calculateIntercept(start, end);
+        if (rayTraceResult != null && start.distanceTo(rayTraceResult.hitVec) < shortestDistance) {
+            isLookingAtPrecipitate = true;
+        }
+        return lookObject == null ? null : new ExtendedRayTraceResult(lookObject, index == 13, isLookingAtPrecipitate);
     }
 
     private static class ExtendedRayTraceResult extends RayTraceResult {
-        private boolean isLookingAtLogs, isLookingAtBase;
+        private boolean isLookingAtLogs, isLookingAtPrecipitate;
 
-        public ExtendedRayTraceResult(RayTraceResult rayTraceResult, boolean isLookingAtLogs, boolean isLookingAtBase) {
+        public ExtendedRayTraceResult(RayTraceResult rayTraceResult, boolean isLookingAtLogs, boolean isLookingAtPrecipitate) {
             super(rayTraceResult.hitVec, rayTraceResult.sideHit, rayTraceResult.getBlockPos());
             this.isLookingAtLogs = isLookingAtLogs;
-            this.isLookingAtBase = isLookingAtBase;
+            this.isLookingAtPrecipitate = isLookingAtPrecipitate;
         }
     }
 
