@@ -33,10 +33,17 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.FluidTankInfo;
+import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-public class TileEntityCauldron extends TileEntity implements ITickable {
+public class TileEntityCauldron extends TileEntity implements ITickable, IFluidTank {
+    public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
+    public FluidTank tank = new FluidTank(null, Fluid.BUCKET_VOLUME);
     private static final String DUST_DEATH_COUNTER = "dustDeathCounter";
     private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
     private float dustBufferTotalAlpha;
@@ -109,6 +116,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
     public void setPureWater() {
         countAluminum = countSilica = 0;
+        worldObj.notifyNeighborsOfStateChange(pos, blockType);
     }
 
     public double getWaterTemp() {
@@ -119,6 +127,15 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
         this.waterTemp = waterTemp;
     }
 
+    public double getWaterLevel()
+    {
+        return 0.3125 + (getFluidAmount() / (double) getCapacity()) * 0.5;
+    }
+
+    public AxisAlignedBB getWaterCollisionBox() {
+        return new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, getWaterLevel(), AABB_WATER.maxZ);
+    }
+    
     public boolean hasSolidPrecipitate() {
         return getSolidPrecipitateLevel() > BlockCauldron.AABB_BASE.maxY;
     }
@@ -166,7 +183,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             return;
 
         BlockCauldron cauldron = (BlockCauldron) state.getBlock();
-        int waterLevel = cauldron.getWaterLevel(state);
 
         if (worldObj.isRemote && cauldron == BlocksKaoliniteTest.cauldron_lit && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
             IParticleFactory[] particles = new IParticleFactory[4];
@@ -177,7 +193,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             cauldron.spawnParticlesForLogs(worldObj, pos, null, 5, particles);
         }
 
-        if (waterLevel > 0) {
+        if (!isEmpty()) {
             if (cauldron == BlocksKaoliniteTest.cauldron_lit) {
 //                int waterAmount = (int) (1000 * (3 / (double) waterLevel));
 //                waterTemp += (SECECONDS_PER_TICK * KILOWATTS) / (SPECIFIC_HEAT_WATER * waterAmount * LITERS_PER_MILIBUCKET);
@@ -204,7 +220,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
 
         if (isPrecursor()) {
             if (worldObj.isRemote && progressTicks > TICKS_PRECIPITATION_DELAY && progressTicks < TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL) {
-                AxisAlignedBB box = cauldron.AABB_WATER;
+                AxisAlignedBB box = TileEntityCauldron.AABB_WATER;
                 Vec3d particlePos = new Vec3d(pos.getX() + Math.random() * (box.maxX - box.minX) + box.minX, pos.getY() +
                         Math.random() * (box.maxY - box.minY) + box.minY, pos.getZ() + Math.random() * (box.maxZ - box.minZ) + box.minZ);
                 ClientHelper.spawnParticle(worldObj, particlePos, new ParticleCauldronPrecipitate.Factory());
@@ -212,10 +228,10 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             return;
         }
 
-        if (waterLevel != 3)
+        if (!isFull())
             return;
         if (!worldObj.isRemote) {
-            AxisAlignedBB waterBox = cauldron.getWaterCollisionBox(state).offset(getPos());
+            AxisAlignedBB waterBox = getWaterCollisionBox().offset(getPos());
             for (EntityItem entityItem : worldObj.getEntitiesWithinAABB(EntityItem.class, waterBox)) {
                 consumeDust(entityItem);
             }
@@ -274,7 +290,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
             float f1 = MathHelper.floor_double(dustMinY);
             for (int i = 0; i < (1.0F + dustWidth * 20.0F) * amount; ++i) {
                 ClientHelper.spawnParticle((new ParticleCauldronDisolveDust.Factory()).getEntityFX(0, worldObj, dustPos.xCoord,
-                        BlockCauldron.AABB_WATER.offset(pos).maxY - 0.125, dustPos.zCoord, worldObj.rand.nextDouble() * -0.01 + 0.005, worldObj.rand.nextDouble() * -0.002, worldObj.rand.nextDouble() * -0.01 + 0.005, new int[0]));
+                        TileEntityCauldron.AABB_WATER.offset(pos).maxY - 0.125, dustPos.zCoord, worldObj.rand.nextDouble() * -0.01 + 0.005, worldObj.rand.nextDouble() * -0.002, worldObj.rand.nextDouble() * -0.01 + 0.005, new int[0]));
             }
             for (int j = 0; j < 1.0F + dustWidth * 20.0F; ++j) {
                 float f4 = (worldObj.rand.nextFloat() * 2.0F - 1.0F) * dustWidth;
@@ -318,6 +334,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     }
 
     public NBTTagCompound writeCauldronToNBT(NBTTagCompound nbt) {
+        tank.writeToNBT(nbt);
         nbt.setInteger("countAluminum", countAluminum);
         nbt.setInteger("countSilica", countSilica);
         nbt.setDouble("waterTemp", waterTemp);
@@ -332,6 +349,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
     }
 
     public void readCauldronFromNBT(NBTTagCompound nbt) {
+        tank.readFromNBT(nbt);
         countAluminum = nbt.getInteger("countAluminum");
         countSilica = nbt.getInteger("countSilica");
         waterTemp = nbt.getDouble("waterTemp");
@@ -382,6 +400,57 @@ public class TileEntityCauldron extends TileEntity implements ITickable {
                     dustBufferTotalAlpha = 0;
             }
         }
+    }
+
+    @Override
+    @Nullable
+    public FluidStack getFluid() {
+        return tank.getFluid();
+    }
+
+    @Override
+    public int getFluidAmount() {
+        return tank.getFluidAmount();
+    }
+
+    @Override
+    public int getCapacity() {
+        return Fluid.BUCKET_VOLUME;
+    }
+
+    @Override
+    public FluidTankInfo getInfo() {
+        return tank.getInfo();
+    }
+
+    @Override
+    public int fill(FluidStack resource, boolean doFill) {
+        if (resource == null || resource.getFluid() == null)
+            return 0;
+
+        double fluidTemp = resource.getFluid().getTemperature() - 273.15D;
+        int V2 = tank.fill(resource, doFill);
+        if (doFill) {
+            int V1 = tank.getFluidAmount();
+            waterTemp = (V1 * waterTemp + V2 * fluidTemp) / (V1 + V2);
+        }
+        return V2;
+    }
+
+    @Override
+    @Nullable
+    public FluidStack drain(int maxDrain, boolean doDrain) {
+        return tank.drain(maxDrain, doDrain);
+    }
+
+    public boolean isFull()
+    {
+        return tank.getFluidAmount() == tank.getCapacity();
+    }
+
+    public boolean isEmpty()
+    {
+        return tank.getFluidAmount() == 0;
     }
 
 }

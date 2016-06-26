@@ -7,8 +7,8 @@ import org.lwjgl.opengl.GL11;
 
 import com.phylogeny.kaolinitetest.block.BlockCauldron;
 import com.phylogeny.kaolinitetest.client.util.ModelTransformer;
+import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ModelRegistration;
-import com.phylogeny.kaolinitetest.reference.Reference;
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
 import net.minecraft.block.state.IBlockState;
@@ -26,6 +26,9 @@ import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.animation.FastTESR;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class RendererCauldron extends FastTESR<TileEntityCauldron> {
@@ -44,19 +47,18 @@ public class RendererCauldron extends FastTESR<TileEntityCauldron> {
         double z2 = z + 0.1875;
 
         if (MinecraftForgeClient.getRenderPass() == 1) {
-            BlockCauldron cauldronBlock = (BlockCauldron) state.getBlock();
-            int level = cauldronBlock.getWaterLevel(state);
-            if (level > 0) {
+            FluidStack fluidStack = cauldronTE.getFluid();
+            if (!cauldronTE.isEmpty() && fluidStack != null) {
                 vb.finishDrawing();
-                double y2 = y + 0.4375;
-                if (level > 1)
-                    y2 += 0.1875 * (level - 1);
-
-                float alpha = cauldronTE.getAlpha();
-                Vec3d pos = new Vec3d(x2, y2, z2);
-                renderTexturedSide(pos, alpha, "minecraft:blocks/water_still");
-                renderTexturedSide(pos, 1 - alpha, Reference.GROUP_ID + ":fluids/kaolinite_precursor_still");
-
+                Vec3d pos = new Vec3d(x2, y + cauldronTE.getWaterLevel(), z2);
+                Fluid fluid = fluidStack.getFluid();
+                if (fluid == FluidRegistry.WATER || fluid == FluidsKaoliniteTest.kaolinitePrecursor) {
+                    float alpha = cauldronTE.getAlpha();
+                    renderTexturedSide(pos, alpha, FluidRegistry.WATER.getStill().toString());
+                    renderTexturedSide(pos, 1 - alpha, FluidsKaoliniteTest.kaolinitePrecursor.getStill().toString());
+                } else {
+                    renderTexturedSide(pos, 1, fluid.getStill().toString());
+                }
                 vb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
             }
         } else {
@@ -96,7 +98,10 @@ public class RendererCauldron extends FastTESR<TileEntityCauldron> {
     }
 
     private void renderTexturedSide(Vec3d pos, float alpha, String path) {
-        TextureAtlasSprite texture = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(path);
+        TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
+        TextureAtlasSprite texture = textureMap.getTextureExtry(path);
+        if (texture == null)
+            texture = textureMap.getAtlasSprite("");
         renderTexturedSide(pos, texture.getMinU(), texture.getMaxU(), texture.getMinV(), texture.getMaxV(), alpha);
     }
 
