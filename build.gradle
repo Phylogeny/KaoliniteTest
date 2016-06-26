@@ -12,12 +12,12 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "1.9.4-1.13.0"
+version = "1.10-1.13.0"
 group= "com.phylogeny.kaolinitetest"
 archivesBaseName = "KaoliniteTest"
 
 minecraft {
-    version = "1.9.4-12.17.0.1957"
+    version = "1.10-12.18.0.1996-1.10.0"
     runDir = "run"
     mappings = "snapshot_20160518"
 }
@@ -31,7 +31,7 @@ processResources
         include 'mcmod.info'
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-	
+
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }

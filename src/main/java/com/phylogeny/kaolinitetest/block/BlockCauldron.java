@@ -510,7 +510,6 @@ public class BlockCauldron extends Block {
                 event.setCanceled(true);
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-                GlStateManager.color(0.0F, 0.0F, 0.0F, 0.4F);
                 GlStateManager.glLineWidth(2.0F);
                 GlStateManager.disableTexture2D();
                 GlStateManager.depthMask(false);
@@ -519,7 +518,7 @@ public class BlockCauldron extends Block {
                 double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
                 double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
                 double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
-                RenderGlobal.drawSelectionBoundingBox(AABB_WOOD.offset(pos).expandXyz(0.0020000000949949026D).offset(-d0, -d1, -d2));
+                RenderGlobal.func_189697_a(AABB_WOOD.offset(pos).expandXyz(0.0020000000949949026D).offset(-d0, -d1, -d2), 0.0F, 0.0F, 0.0F, 0.4F);
 
                 GlStateManager.depthMask(true);
                 GlStateManager.enableTexture2D();
