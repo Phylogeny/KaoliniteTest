@@ -17,9 +17,6 @@ import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyInteger;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.ParticleFlame;
@@ -47,20 +44,19 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockCauldron extends Block {
     private final boolean isBurning;
-    public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 3);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.1875, 0.1875, 0.25, 0.3125);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.3125, 0.25, 0.1875);
     protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.6875, 0.1875, 0.25, 0.8125);
@@ -79,13 +75,11 @@ public class BlockCauldron extends Block {
     protected static final AxisAlignedBB AABB_WOOD = new AxisAlignedBB(0.0625, 0.0, 0.0625, 0.9375, 0.1875, 0.9375);
     protected static final AxisAlignedBB[] BOXES = new AxisAlignedBB[]{AABB_LEG_1_SEGMENT_1, AABB_LEG_1_SEGMENT_2, AABB_LEG_2_SEGMENT_1, AABB_LEG_2_SEGMENT_2, AABB_LEG_3_SEGMENT_1,
         AABB_LEG_3_SEGMENT_2, AABB_LEG_4_SEGMENT_1, AABB_LEG_4_SEGMENT_2, AABB_BASE, AABB_WALL_1, AABB_WALL_2, AABB_WALL_3, AABB_WALL_4, AABB_WOOD};
-    public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
     public static final AxisAlignedBB AABB_PRECIPITATE = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.375, 0.8125);
     protected static final AxisAlignedBB AABB_BOUNDING_BOX = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.875, 0.875, 0.875);
 
     public BlockCauldron(boolean isBurning) {
         super(Material.IRON, MapColor.STONE);
-        setDefaultState(blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(0)));
         if (isBurning)
             setLightLevel(0.875F);
         this.isBurning = isBurning;
@@ -165,7 +159,11 @@ public class BlockCauldron extends Block {
         if (worldIn.isRemote)
             return;
 
-        AxisAlignedBB waterBox = getWaterCollisionBox(state);
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE == null)
+            return;
+
+        AxisAlignedBB waterBox = cauldronTE.getWaterCollisionBox();
         if (entityIn.getEntityBoundingBox().intersectsWith(waterBox.offset(pos))) {
             if (entityIn.isBurning())
                 entityIn.extinguish();
@@ -183,30 +181,16 @@ public class BlockCauldron extends Block {
         }
     }
 
-    public AxisAlignedBB getWaterCollisionBox(IBlockState state) {
-        int level = getWaterLevel(state);
-        double waterHeight = 0.3125 + (level < 2 ? level * 0.125 : 0.125 + (level - 1) * 0.1875);
-        AxisAlignedBB waterBox = new AxisAlignedBB(AABB_WATER.minX, AABB_WATER.minY, AABB_WATER.minZ, AABB_WATER.maxX, waterHeight, AABB_WATER.maxZ);
-        return waterBox;
-    }
-
-    public int getWaterLevel(IBlockState state) {
-        return state.getValue(LEVEL).intValue();
-    }
-
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity == null || !(tileEntity instanceof TileEntityCauldron))
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE == null)
             return true;
 
-        TileEntityCauldron cauldronTE = (TileEntityCauldron) tileEntity;
-
-        int level = getWaterLevel(state);
         boolean fullOfSolidPrecipitate = cauldronTE.hasMaximunSolidPrecipitate();
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
 
-        if (level == 0 && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtPrecipitate && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
+        if (cauldronTE.isEmpty() && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtPrecipitate && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
             ItemStack stack;
             if (heldItem == null) {
                 stack = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
@@ -216,6 +200,7 @@ public class BlockCauldron extends Block {
             }
             playerIn.setHeldItem(hand, stack);
             cauldronTE.setProgressTicks(0);
+            worldIn.notifyNeighborsOfStateChange(pos, cauldronTE.getBlockType());
             return true;
         }
 
@@ -225,53 +210,58 @@ public class BlockCauldron extends Block {
         Item item = heldItem.getItem();
 
         if (lookObject != null && lookObject.isLookingAtLogs) {
-            return interactWithLogs(worldIn, pos, playerIn, hand, heldItem, item, level, lookObject);
+            return interactWithLogs(worldIn, pos, playerIn, hand, heldItem, item, lookObject);
         }
 
         boolean isPrecursor = cauldronTE.isPrecursor();
         boolean isPureWater = cauldronTE.isPureWater();
 
         if (item == Items.BUCKET) {
-            if (level != 3 || !(isPrecursor || isPureWater) || (cauldronTE.hasSolidPrecipitate() && !fullOfSolidPrecipitate))
+            if (!cauldronTE.isFull() || !(isPrecursor || isPureWater) || (cauldronTE.hasSolidPrecipitate() && !fullOfSolidPrecipitate))
                 return true;
-            collectLiquid(worldIn, pos, state, playerIn, hand, heldItem, isPrecursor);
+            collectLiquid(worldIn, pos, cauldronTE, playerIn, hand, heldItem, isPrecursor);
             return true;
         }
 
-        boolean isFilledBucket = item == Items.WATER_BUCKET || ItemStack.areItemStacksEqual(heldItem, getLiquidBucket(true));
         if (isPrecursor)
-            return isFilledBucket;
+            return true;
 
-        if (isFilledBucket) {
-            if (fullOfSolidPrecipitate)
+        if (item == Items.WATER_BUCKET || ItemStack.areItemStacksEqual(heldItem, getLiquidBucket(true))) {
+            if (fullOfSolidPrecipitate || (cauldronTE.getFluid() != null && !cauldronTE.getFluid().isFluidEqual(heldItem)))
                 return true;
-            if (level < 3 && !worldIn.isRemote) {
-                if (!playerIn.capabilities.isCreativeMode) {
+
+            FluidStack fluidStack = new FluidStack(item == Items.WATER_BUCKET ? FluidRegistry.WATER : FluidsKaoliniteTest.kaolinitePrecursor, cauldronTE.getCapacity());
+            if (cauldronTE.fill(fluidStack, false) > 0) {
+                if (!playerIn.capabilities.isCreativeMode && !worldIn.isRemote) {
                     playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
                 }
-                playerIn.addStat(StatList.CAULDRON_FILLED);
-                setWaterLevel(worldIn, pos, state, 3);
+                cauldronTE.fill(fluidStack, true);
+                if (!worldIn.isRemote)
+                    playerIn.addStat(StatList.CAULDRON_FILLED);
             }
             if (item == Items.WATER_BUCKET) {
                 cauldronTE.setPureWater();
             } else {
-                TileEntity tileEntity2 = worldIn.getTileEntity(pos);
-                if (tileEntity2 != null && tileEntity2 instanceof TileEntityCauldron) {
-                    TileEntityCauldron cauldronTE2 = (TileEntityCauldron) tileEntity2;
+                TileEntityCauldron cauldronTE2 = getCauldronTileEntity(worldIn, pos);
+                if (cauldronTE2 != null) {
                     cauldronTE2.setCountAluminum(7);
                     cauldronTE2.setCountSilica(7);
                 }
             }
             playEmptyBucketSound(worldIn, pos, playerIn);
             return true;
-        } else if (item == Items.GLASS_BOTTLE) {
-            if (level == 0 || !isPureWater)
+        }
+
+        if (!isPureWater)
+            return true;
+
+        if (item == Items.GLASS_BOTTLE) {
+            if (cauldronTE.isEmpty())
                 return true;
             if (worldIn.isRemote) {
                 worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.5F);
-                return true;
             }
-            if (!playerIn.capabilities.isCreativeMode) {
+            if (!worldIn.isRemote && !playerIn.capabilities.isCreativeMode) {
                 ItemStack itemstack1 = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), PotionTypes.WATER);
                 playerIn.addStat(StatList.CAULDRON_USED);
 
@@ -283,64 +273,71 @@ public class BlockCauldron extends Block {
                     ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
                 } 
             }
-            setWaterLevel(worldIn, pos, state, level - 1);
+            drainBucketThird(cauldronTE);
             return true;
-        } else {
-            if (level > 0 && item instanceof ItemArmor) {
-                ItemArmor itemarmor = (ItemArmor)item;
-                if (itemarmor.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && itemarmor.hasColor(heldItem) && !worldIn.isRemote) {
-                    itemarmor.removeColor(heldItem);
-                    setWaterLevel(worldIn, pos, state, level - 1);
-                    playerIn.addStat(StatList.ARMOR_CLEANED);
-                    return true;
-                }
-            }
+        }
 
-            if (level > 0 && item instanceof ItemBanner) {
-                if (TileEntityBanner.getPatterns(heldItem) == 0 || worldIn.isRemote)
-                    return true;
-                ItemStack itemstack = heldItem.copy();
-                itemstack.stackSize = 1;
-                TileEntityBanner.removeBannerData(itemstack);
-                playerIn.addStat(StatList.BANNER_CLEANED);
-                if (!playerIn.capabilities.isCreativeMode) {
-                    --heldItem.stackSize;
-                }
+        if (!cauldronTE.isEmpty() && item instanceof ItemArmor && ((ItemArmor) item).getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && ((ItemArmor) item).hasColor(heldItem)) {
+            if (!worldIn.isRemote)
+                playerIn.addStat(StatList.ARMOR_CLEANED);
+            drainBucketThird(cauldronTE);
+            return true;
+        }
 
-                if (heldItem.stackSize == 0) {
-                    playerIn.setHeldItem(hand, itemstack);
-                } else if (!playerIn.inventory.addItemStackToInventory(itemstack)) {
-                    playerIn.dropItem(itemstack, false);
-                } else if (playerIn instanceof EntityPlayerMP) {
-                    ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
-                }
-
-                if (!playerIn.capabilities.isCreativeMode) {
-                    setWaterLevel(worldIn, pos, state, level - 1);
-                }
+        if (!cauldronTE.isEmpty() && item instanceof ItemBanner) {
+            if (TileEntityBanner.getPatterns(heldItem) == 0)
                 return true;
+
+            if (!playerIn.capabilities.isCreativeMode)
+                drainBucketThird(cauldronTE);
+
+            if (worldIn.isRemote)
+                return true;
+
+            ItemStack itemstack = heldItem.copy();
+            itemstack.stackSize = 1;
+            TileEntityBanner.removeBannerData(itemstack);
+            playerIn.addStat(StatList.BANNER_CLEANED);
+            if (!playerIn.capabilities.isCreativeMode) {
+                --heldItem.stackSize;
             }
+
+            if (heldItem.stackSize == 0) {
+                playerIn.setHeldItem(hand, itemstack);
+            } else if (!playerIn.inventory.addItemStackToInventory(itemstack)) {
+                playerIn.dropItem(itemstack, false);
+            } else if (playerIn instanceof EntityPlayerMP) {
+                ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
+            }
+            return true;
         }
         return false;
     }
 
-    private void collectLiquid(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, boolean isPrecursor) {
-        if (!worldIn.isRemote) {
-            if (!playerIn.capabilities.isCreativeMode) {
-                --heldItem.stackSize;
-                if (heldItem.stackSize == 0) {
-                    playerIn.setHeldItem(hand, getLiquidBucket(isPrecursor));
-                } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(isPrecursor))) {
-                    playerIn.dropItem(getLiquidBucket(isPrecursor), false);
-                }
-            }
-            playerIn.addStat(StatList.CAULDRON_USED);
-            setWaterLevel(worldIn, pos, state, 0);
-        }
-        worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+    private void drainBucketThird(TileEntityCauldron cauldronTE) {
+        cauldronTE.drain(cauldronTE.getFluidAmount() == 334 ? 334 : (int) (cauldronTE.getCapacity() / 3.0), true);
     }
 
-    private boolean interactWithLogs(World worldIn, BlockPos pos, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, int level, ExtendedRayTraceResult lookObject) {
+    private void collectLiquid(World worldIn, BlockPos pos, TileEntityCauldron cauldronTE, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, boolean isPrecursor) {
+        worldIn.playSound(playerIn, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        cauldronTE.setPureWater();
+        cauldronTE.drain(cauldronTE.getCapacity(), true);
+
+        if (worldIn.isRemote)
+            return;
+
+        if (!playerIn.capabilities.isCreativeMode) {
+            --heldItem.stackSize;
+            if (heldItem.stackSize == 0) {
+                playerIn.setHeldItem(hand, getLiquidBucket(isPrecursor));
+            } else if (!playerIn.inventory.addItemStackToInventory(getLiquidBucket(isPrecursor))) {
+                playerIn.dropItem(getLiquidBucket(isPrecursor), false);
+            }
+        }
+        playerIn.addStat(StatList.CAULDRON_USED);
+    }
+
+    private boolean interactWithLogs(World worldIn, BlockPos pos, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, ExtendedRayTraceResult lookObject) {
         if (item == Items.WATER_BUCKET) {
             playEmptyBucketSound(worldIn, pos, playerIn);
             int n = isBurning ? 4 : 3;
@@ -357,30 +354,31 @@ public class BlockCauldron extends Block {
                 if (!playerIn.capabilities.isCreativeMode) {
                     playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
                 }
-                setCauldronBurning(worldIn, pos, level, BlocksKaoliniteTest.cauldron_unlit);
+                setCauldronBurning(worldIn, pos, BlocksKaoliniteTest.cauldron_unlit);
             }
         } else if (item == Items.FLINT_AND_STEEL) {
             worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
             spawnParticlesForLogs(worldIn, pos, lookObject, 16, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory());
             heldItem.damageItem(1, playerIn);
             if (!worldIn.isRemote) {
-                setCauldronBurning(worldIn, pos, level, BlocksKaoliniteTest.cauldron_lit);
+                setCauldronBurning(worldIn, pos, BlocksKaoliniteTest.cauldron_lit);
             }
         }
         return true;
     }
 
-    private void setCauldronBurning(World worldIn, BlockPos pos, int level, Block cauldronBlock) {
+    private void setCauldronBurning(World worldIn, BlockPos pos, Block cauldronBlock) {
         NBTTagCompound cauldronNBT = new NBTTagCompound();
         TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
         if (cauldronTE != null) {
             cauldronTE.writeCauldronToNBT(cauldronNBT);
         }
-        worldIn.setBlockState(pos, cauldronBlock.getDefaultState().getActualState(worldIn, pos).withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 3))), 2);
+        worldIn.setBlockState(pos, cauldronBlock.getDefaultState(), 3);
         cauldronTE = getCauldronTileEntity(worldIn, pos);
         if (cauldronTE != null) {
             cauldronTE.readCauldronFromNBT(cauldronNBT);
         }
+        //TODO send packet to update client
     }
 
     public void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
@@ -423,18 +421,12 @@ public class BlockCauldron extends Block {
 
     @Override
     public void fillWithRain(World worldIn, BlockPos pos) {
-        if (worldIn.rand.nextInt(20) == 1) {
-            float f = worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos);
-            if (worldIn.getBiomeProvider().getTemperatureAtHeight(f, pos.getY()) >= 0.15F) {
-                IBlockState state = worldIn.getBlockState(pos);
-                int level = getWaterLevel(state);
-                if (level < 3) {
-                    TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
-                    if (cauldronTE != null) {
-                        if (cauldronTE.isPureWater() && !cauldronTE.hasSolidPrecipitate()) {
-                            setWaterLevel(worldIn, pos, state, level + 1);
-                        }
-                    }
+        if (worldIn.rand.nextInt(20) == 1 && worldIn.getBiomeProvider().getTemperatureAtHeight(worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos), pos.getY()) >= 0.15F) {
+            TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+            if (cauldronTE != null && cauldronTE.isPureWater()) {
+                if (cauldronTE.isPureWater() && !cauldronTE.hasSolidPrecipitate()) {
+                    cauldronTE.fill(new FluidStack(FluidRegistry.WATER, cauldronTE.getFluidAmount() == 666 ? 334 : (int) (cauldronTE.getCapacity() / 3.0)), true);
+                    //TODO send packet to update client
                 }
             }
         }
@@ -451,22 +443,6 @@ public class BlockCauldron extends Block {
         return new ItemStack(Items.WATER_BUCKET);
     }
 
-    public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level) {
-        double waterTemp = 0;
-        int progressTicks = 0;
-        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
-        if (cauldronTE != null) {
-            waterTemp = cauldronTE.getWaterTemp();
-            progressTicks = cauldronTE.getProgressTicks();
-        }
-        worldIn.setBlockState(pos, state.withProperty(LEVEL, Integer.valueOf(MathHelper.clamp_int(level, 0, 3))), 2);
-        cauldronTE = getCauldronTileEntity(worldIn, pos);
-        if (cauldronTE != null) {
-            cauldronTE.setWaterTemp(waterTemp);
-            cauldronTE.setProgressTicks(progressTicks);
-        }
-    }
-
     @Override
     public boolean hasComparatorInputOverride(IBlockState state) {
         return true;
@@ -474,22 +450,11 @@ public class BlockCauldron extends Block {
 
     @Override
     public int getComparatorInputOverride(IBlockState blockState, World worldIn, BlockPos pos) {
-        return getWaterLevel(blockState);
-    }
-
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(LEVEL, Integer.valueOf(meta));
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return getWaterLevel(state);
-    }
-
-    @Override
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, new IProperty[] {LEVEL});
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null) {
+            return cauldronTE.hasMaximunSolidPrecipitate() ? 15 : 0;
+        }
+        return 0;
     }
 
     @Override

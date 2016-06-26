@@ -3,6 +3,7 @@ package com.phylogeny.kaolinitetest.client.particle;
 import com.phylogeny.kaolinitetest.block.BlockCauldron;
 import com.phylogeny.kaolinitetest.init.ModelRegistration;
 import com.phylogeny.kaolinitetest.reference.Reference;
+import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -45,7 +46,7 @@ public class ParticleCauldronDisolveDust extends Particle {
         BlockPos pos = new BlockPos(posX, posY, posZ);
         IBlockState state = worldObj.getBlockState(pos);
         if (state.getBlock() instanceof BlockCauldron) {
-            AxisAlignedBB waterBox = BlockCauldron.AABB_WATER.offset(pos).contract(0.06);
+            AxisAlignedBB waterBox = TileEntityCauldron.AABB_WATER.offset(pos).contract(0.06);
             if (posY <= waterBox.minY) {
                 posY = waterBox.minY;
                 motionY = 0;
