@@ -5,19 +5,19 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import com.phylogeny.kaolinitetest.KaoliniteTest;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeLarge;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSplash;
 import com.phylogeny.kaolinitetest.client.util.ClientHelper;
 import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
+import com.phylogeny.kaolinitetest.packet.PacketCauldronRainFill;
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.ParticleFlame;
@@ -35,7 +35,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -55,9 +54,9 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 public class BlockCauldron extends Block {
-    private static final PropertyBool BURNING = PropertyBool.create("burning");
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.1875, 0.1875, 0.25, 0.3125);
     protected static final AxisAlignedBB AABB_LEG_1_SEGMENT_2 = new AxisAlignedBB(0.125, 0.1875, 0.125, 0.3125, 0.25, 0.1875);
     protected static final AxisAlignedBB AABB_LEG_2_SEGMENT_1 = new AxisAlignedBB(0.125, 0.1875, 0.6875, 0.1875, 0.25, 0.8125);
@@ -81,31 +80,15 @@ public class BlockCauldron extends Block {
 
     public BlockCauldron() {
         super(Material.IRON, MapColor.STONE);
-        setDefaultState(blockState.getBaseState().withProperty(BURNING, false));
-    }
-
-    public boolean isBurning(IBlockState state) {
-        return state.getValue(BURNING);
     }
 
     @Override
     public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
-        return isBurning(state) ? 14 : 0;
-    }
-
-    @Override
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, BURNING);
-    }
-
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(BURNING, meta == 1);
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return isBurning(state) ? 1 : 0;
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(world, pos);
+        if (cauldronTE != null) {
+            return cauldronTE.isBurning() ? 14 : 0;
+        }
+        return 0;
     }
 
     @Override
@@ -158,12 +141,11 @@ public class BlockCauldron extends Block {
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
         TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
-        if (cauldronTE != null) {
+        if (cauldronTE != null)
             cauldronTE.liftHandle();
-        }
     }
 
-    private TileEntityCauldron getCauldronTileEntity(World worldIn, BlockPos pos) {
+    private TileEntityCauldron getCauldronTileEntity(IBlockAccess worldIn, BlockPos pos) {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
             return (TileEntityCauldron) tileEntity;
@@ -233,7 +215,7 @@ public class BlockCauldron extends Block {
         Item item = heldItem.getItem();
 
         if (lookObject != null && lookObject.isLookingAtLogs) {
-            return interactWithLogs(worldIn, pos, state, playerIn, hand, heldItem, item, lookObject);
+            return interactWithLogs(worldIn, pos, state, cauldronTE, playerIn, hand, heldItem, item, lookObject);
         }
 
         boolean isPrecursor = cauldronTE.isPrecursor();
@@ -360,15 +342,15 @@ public class BlockCauldron extends Block {
         playerIn.addStat(StatList.CAULDRON_USED);
     }
 
-    private boolean interactWithLogs(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, ExtendedRayTraceResult lookObject) {
+    private boolean interactWithLogs(World worldIn, BlockPos pos, IBlockState state, TileEntityCauldron cauldronTE, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, ExtendedRayTraceResult lookObject) {
         if (item == Items.WATER_BUCKET) {
             playEmptyBucketSound(worldIn, pos, playerIn);
-            int n = isBurning(state) ? 4 : 3;
+            int n = cauldronTE.isBurning() ? 4 : 3;
             IParticleFactory[] particles = new IParticleFactory[n];
             for (int i = 0; i < 3; i++) {
                 particles[i] = new ParticleCauldronSplash.Factory();
             }
-            if (isBurning(state)) {
+            if (cauldronTE.isBurning()) {
                 particles[3] = new ParticleCauldronSmokeLarge.Factory();
                 worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
             }
@@ -377,30 +359,15 @@ public class BlockCauldron extends Block {
                 if (!playerIn.capabilities.isCreativeMode) {
                     playerIn.setHeldItem(hand, new ItemStack(Items.BUCKET));
                 }
-                setCauldronBurning(worldIn, pos, state, false);
             }
+            cauldronTE.setBurning(false);
         } else if (item == Items.FLINT_AND_STEEL) {
             worldIn.playSound(playerIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
             spawnParticlesForLogs(worldIn, pos, lookObject, 16, new ParticleFlame.Factory(), new ParticleCauldronSmokeNormal.Factory());
             heldItem.damageItem(1, playerIn);
-            if (!worldIn.isRemote) {
-                setCauldronBurning(worldIn, pos, state, true);
-            }
+            cauldronTE.setBurning(true);
         }
         return true;
-    }
-
-    private void setCauldronBurning(World worldIn, BlockPos pos, IBlockState state, boolean isBurning) {
-        NBTTagCompound cauldronNBT = new NBTTagCompound();
-        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
-        if (cauldronTE != null) {
-            cauldronTE.writeCauldronToNBT(cauldronNBT);
-        }
-        worldIn.setBlockState(pos, state.withProperty(BURNING, isBurning), 2);
-        cauldronTE = getCauldronTileEntity(worldIn, pos);
-        if (cauldronTE != null) {
-            cauldronTE.readCauldronFromNBT(cauldronNBT);
-        }
     }
 
     public void spawnParticlesForLogs(World worldIn, BlockPos pos, ExtendedRayTraceResult lookObject, int particleCount, IParticleFactory... particleFactories) {
@@ -433,7 +400,8 @@ public class BlockCauldron extends Block {
 
     @Override
     public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-        if (isBurning(stateIn) && rand.nextDouble() < 0.1D) {
+        TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
+        if (cauldronTE != null && cauldronTE.isBurning() && rand.nextDouble() < 0.1D) {
             worldIn.playSound(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
         }
     }
@@ -443,13 +411,12 @@ public class BlockCauldron extends Block {
 
     @Override
     public void fillWithRain(World worldIn, BlockPos pos) {
-        if (worldIn.rand.nextInt(20) == 1 && worldIn.getBiomeProvider().getTemperatureAtHeight(worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos), pos.getY()) >= 0.15F) {
+        if (worldIn.getBiomeProvider().getTemperatureAtHeight(worldIn.getBiomeGenForCoords(pos).getFloatTemperature(pos), pos.getY()) >= 0.15F) {
             TileEntityCauldron cauldronTE = getCauldronTileEntity(worldIn, pos);
-            if (cauldronTE != null && cauldronTE.isPureWater()) {
-                if (cauldronTE.isPureWater() && !cauldronTE.hasSolidPrecipitate()) {
-                    cauldronTE.fill(new FluidStack(FluidRegistry.WATER, cauldronTE.getFluidAmount() == 666 ? 334 : (int) (cauldronTE.getCapacity() / 3.0)), true);
-                    //TODO send packet to update client
-                }
+            if (cauldronTE != null && cauldronTE.isPureWater() && !cauldronTE.isFull() && !cauldronTE.hasSolidPrecipitate()) {
+                cauldronTE.fill(new FluidStack(FluidRegistry.WATER, 50), true);
+                KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronRainFill(pos),
+                        new TargetPoint(worldIn.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
             }
         }
     }

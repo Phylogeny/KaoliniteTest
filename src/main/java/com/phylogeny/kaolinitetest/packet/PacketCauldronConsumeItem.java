@@ -11,18 +11,17 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
-public class PacketCauldronConsumeItem implements IMessage {
-    protected BlockPos pos;
+public class PacketCauldronConsumeItem extends PacketPositioned {
     private boolean isAluminum;
     private int amount;
     private Vec3d dustPos, dustMotion;
     private float dustWidth;
     private double dustMinY;
-    
+
     public PacketCauldronConsumeItem() {}
 
     public PacketCauldronConsumeItem(BlockPos pos, boolean isAluminum, int amount, Vec3d dustPos, Vec3d dustMotion, float dustWidth, double dustMinY) {
-        this.pos = pos;
+        super(pos);
         this.isAluminum = isAluminum;
         this.amount = amount;
         this.dustPos = dustPos;
@@ -33,9 +32,7 @@ public class PacketCauldronConsumeItem implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buffer) {
-        buffer.writeDouble(pos.getX());
-        buffer.writeDouble(pos.getY());
-        buffer.writeDouble(pos.getZ());
+        super.toBytes(buffer);
         buffer.writeBoolean(isAluminum);
         buffer.writeInt(amount);
         buffer.writeDouble(dustPos.xCoord);
@@ -50,7 +47,7 @@ public class PacketCauldronConsumeItem implements IMessage {
 
     @Override
     public void fromBytes(ByteBuf buffer) {
-        pos = new BlockPos(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+        super.fromBytes(buffer);
         isAluminum = buffer.readBoolean();
         amount = buffer.readInt();
         dustPos = new Vec3d(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());

@@ -12,7 +12,6 @@ import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronFlame;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronPrecipitate;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
 import com.phylogeny.kaolinitetest.client.util.ClientHelper;
-import com.phylogeny.kaolinitetest.init.BlocksKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.SoundsKaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
@@ -48,7 +47,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
     private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
     private float dustBufferTotalAlpha;
     private int tickCounter, countAluminum, countSilica, progressTicks, dustBufferCount;
-    private boolean handleRebounded, handleHasEnergy;
+    private boolean handleRebounded, handleHasEnergy, isBurning;
     private static final float TICKS_PRECIPITATION_TOTAL = 1200;
     private static final float TICKS_PRECIPITATION_DELAY = 600;
     private static final double MAXIMUM_PRECIPITATE_LEVEL = 0.0625;
@@ -88,6 +87,15 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         super.onDataPacket(networkManager, s35PacketUpdateTileEntity);
         readFromNBT(s35PacketUpdateTileEntity.getNbtCompound());
         worldObj.markBlockRangeForRenderUpdate(pos, pos);
+    }
+
+    public boolean isBurning() {
+        return isBurning;
+    }
+
+    public void setBurning(boolean isBurning) {
+        this.isBurning = isBurning;
+        tickCounter = 0;
     }
 
     public int getCountAluminum() {
@@ -184,7 +192,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
 
         BlockCauldron cauldron = (BlockCauldron) state.getBlock();
 
-        if (worldObj.isRemote && cauldron.isBurning(state) && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
+        if (worldObj.isRemote && isBurning && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
             IParticleFactory[] particles = new IParticleFactory[4];
             particles [0] = new ParticleCauldronFlame.Factory();
             for (int i = 1; i < 4; i++) {
@@ -194,7 +202,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         }
 
         if (!isEmpty()) {
-            if (cauldron.isBurning(state)) {
+            if (isBurning) {
 //                int waterAmount = (int) (1000 * (3 / (double) waterLevel));
 //                waterTemp += (SECECONDS_PER_TICK * KILOWATTS) / (SPECIFIC_HEAT_WATER * waterAmount * LITERS_PER_MILIBUCKET);
                 waterTemp += 0.133333333;
@@ -304,7 +312,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
                 f = 1.0F;
             worldObj.playSound((EntityPlayer)null, dustPos.xCoord, dustPos.yCoord, dustPos.zCoord, SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.NEUTRAL, f, 1.0F + (worldObj.rand.nextFloat() - worldObj.rand.nextFloat()) * 0.4F);
             KaoliniteTest.packetNetwork.sendToAllAround(new PacketCauldronConsumeItem(pos, isAluminum, amount, dustPos, dustMotion, dustWidth, dustMinY),
-                    new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
+                    new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
         }
     }
 
@@ -339,6 +347,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         nbt.setInteger("countSilica", countSilica);
         nbt.setDouble("waterTemp", waterTemp);
         nbt.setInteger("ticksProgress", progressTicks);
+        nbt.setBoolean("isCauldronBurning", isBurning);
         return nbt;
     }
 
@@ -354,6 +363,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         countSilica = nbt.getInteger("countSilica");
         waterTemp = nbt.getDouble("waterTemp");
         progressTicks = nbt.getInteger("ticksProgress");
+        isBurning = nbt.getBoolean("isCauldronBurning");
     }
 
     public float getAlpha() {

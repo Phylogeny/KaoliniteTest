@@ -8,8 +8,6 @@
 		"normal": [ { } ],
 		"inventory": [ {
 			"model": "kaolinitetest:cauldron_block_with_handle"
-		} ],
-		"burning=false": [ { } ],
-		"burning=true": [ { } ]
+		} ]
 	}
 }
