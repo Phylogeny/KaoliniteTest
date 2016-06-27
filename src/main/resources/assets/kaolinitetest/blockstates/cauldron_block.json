@@ -9,9 +9,7 @@
 		"inventory": [ {
 			"model": "kaolinitetest:cauldron_block_with_handle"
 		} ],
-		"level=0": [ { } ],
-		"level=1": [ { } ],
-        "level=2": [ { } ],
-        "level=3": [ { } ]
+		"burning=false": [ { } ],
+		"burning=true": [ { } ]
 	}
 }

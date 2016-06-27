@@ -10,13 +10,11 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class BlocksKaoliniteTest {
     public static Block kaoliniteBlock = new BlockKaolinite();
-    public static Block cauldron_lit = new BlockCauldron(true);
-    public static Block cauldron_unlit = new BlockCauldron(false);
+    public static Block cauldron = new BlockCauldron();
 
     public static void registerBlocks() {
         registerBlock(kaoliniteBlock, "kaolinite_block", true);
-        registerBlock(cauldron_lit, "cauldron_block_lit", false);
-        registerBlock(cauldron_unlit, "cauldron_block_unlit", true);
+        registerBlock(cauldron, "cauldron_block", true);
     }
 
     public static void registerBlock(Block block, String name, boolean setCreativeTab) {

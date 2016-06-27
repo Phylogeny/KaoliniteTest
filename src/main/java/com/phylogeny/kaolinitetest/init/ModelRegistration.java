@@ -21,8 +21,7 @@ public class ModelRegistration {
     public static void registerModels() {
         registerFluidModel(FluidsKaoliniteTest.kaolinitePrecursorBlock, FluidsKaoliniteTest.kaolinitePrecursor, "kaolinite_precursor");
         registerBlockModel(BlocksKaoliniteTest.kaoliniteBlock);
-        registerBlockModel(BlocksKaoliniteTest.cauldron_lit);
-        registerBlockModel(BlocksKaoliniteTest.cauldron_unlit);
+        registerBlockModel(BlocksKaoliniteTest.cauldron);
         registerItemModel(ItemsKaoliniteTest.aluminumDust);
         registerItemModel(ItemsKaoliniteTest.silicaDust);
         registerItemModel(ItemsKaoliniteTest.kaoliniteDust);

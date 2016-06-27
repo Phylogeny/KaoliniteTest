@@ -184,7 +184,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
 
         BlockCauldron cauldron = (BlockCauldron) state.getBlock();
 
-        if (worldObj.isRemote && cauldron == BlocksKaoliniteTest.cauldron_lit && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
+        if (worldObj.isRemote && cauldron.isBurning(state) && (tickCounter >= 400 || worldObj.rand.nextInt(400) < tickCounter)) {
             IParticleFactory[] particles = new IParticleFactory[4];
             particles [0] = new ParticleCauldronFlame.Factory();
             for (int i = 1; i < 4; i++) {
@@ -194,7 +194,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         }
 
         if (!isEmpty()) {
-            if (cauldron == BlocksKaoliniteTest.cauldron_lit) {
+            if (cauldron.isBurning(state)) {
 //                int waterAmount = (int) (1000 * (3 / (double) waterLevel));
 //                waterTemp += (SECECONDS_PER_TICK * KILOWATTS) / (SPECIFIC_HEAT_WATER * waterAmount * LITERS_PER_MILIBUCKET);
                 waterTemp += 0.133333333;
