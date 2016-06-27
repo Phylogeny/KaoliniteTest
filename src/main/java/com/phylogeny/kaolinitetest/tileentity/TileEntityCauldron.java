@@ -382,6 +382,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
     public void liftHandle() {
         handleRotation = 0;
         handleHasEnergy = true;
+        handleRebounded = false;
         tickCounter = 0;
     }
 
