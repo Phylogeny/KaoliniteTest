@@ -337,11 +337,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
-        writeCauldronToNBT(nbt);
-        return nbt;
-    }
-
-    public NBTTagCompound writeCauldronToNBT(NBTTagCompound nbt) {
         tank.writeToNBT(nbt);
         nbt.setInteger("countAluminum", countAluminum);
         nbt.setInteger("countSilica", countSilica);
@@ -354,10 +349,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        readCauldronFromNBT(nbt);
-    }
-
-    public void readCauldronFromNBT(NBTTagCompound nbt) {
         tank.readFromNBT(nbt);
         countAluminum = nbt.getInteger("countAluminum");
         countSilica = nbt.getInteger("countSilica");
