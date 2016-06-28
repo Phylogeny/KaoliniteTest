@@ -26,23 +26,26 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.FluidTankInfo;
-import net.minecraftforge.fluids.IFluidTank;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-public class TileEntityCauldron extends TileEntity implements ITickable, IFluidTank {
+public class TileEntityCauldron extends TileEntity implements ITickable, IFluidHandler {
     public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
-    public FluidTank tank = new FluidTank(null, Fluid.BUCKET_VOLUME);
+    private FluidTank tank = new FluidTank(Fluid.BUCKET_VOLUME);
     private static final String DUST_DEATH_COUNTER = "dustDeathCounter";
     private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
     private float dustBufferTotalAlpha;
@@ -61,6 +64,21 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
     private static final double TEMP_LIMIT = 100.0;
     private static final double TEMP_SURROUNDING = 22.0;
     private double waterTemp = 22.0;
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing)
+    {
+        return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing)
+    {
+        if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+            return (T) this;
+        return super.getCapability(capability, facing);
+    }
 
     public static void register() {
         GameRegistry.registerTileEntity(TileEntityCauldron.class, "cauldron");
@@ -404,25 +422,22 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         }
     }
 
-    @Override
     @Nullable
     public FluidStack getFluid() {
         return tank.getFluid();
     }
 
-    @Override
     public int getFluidAmount() {
         return tank.getFluidAmount();
     }
 
-    @Override
     public int getCapacity() {
         return Fluid.BUCKET_VOLUME;
     }
 
     @Override
-    public FluidTankInfo getInfo() {
-        return tank.getInfo();
+    public IFluidTankProperties[] getTankProperties() {
+        return tank.getTankProperties();
     }
 
     @Override
@@ -445,13 +460,17 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidT
         return tank.drain(maxDrain, doDrain);
     }
 
-    public boolean isFull()
-    {
+    @Override
+    @Nullable
+    public FluidStack drain(FluidStack resource, boolean doDrain) {
+        return tank.drain(resource, doDrain);
+    }
+
+    public boolean isFull() {
         return tank.getFluidAmount() == tank.getCapacity();
     }
 
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return tank.getFluidAmount() == 0;
     }
 
