@@ -12,6 +12,7 @@ import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronFlame;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronPrecipitate;
 import com.phylogeny.kaolinitetest.client.particle.ParticleCauldronSmokeNormal;
 import com.phylogeny.kaolinitetest.client.util.ClientHelper;
+import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.SoundsKaoliniteTest;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
@@ -35,6 +36,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -133,11 +135,11 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     }
 
     public boolean isPrecursor() {
-        return countAluminum == 7 && countSilica == 7 && dustBufferCount == 0;
+        return getFluid() != null && getFluid().getFluid() == FluidsKaoliniteTest.kaolinitePrecursor;
     }
 
     public boolean isPureWater() {
-        return countAluminum == 0 && countSilica == 0;
+        return countAluminum == 0 && countSilica == 0 && (getFluid() == null || getFluid().getFluid() == FluidRegistry.WATER);
     }
 
     public void setPureWater() {
@@ -244,6 +246,11 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
             setPureWater();
         }
 
+        if (countAluminum == 7 && countSilica == 7 && dustBufferCount == 0) {
+        	tank = new FluidTank(FluidsKaoliniteTest.kaolinitePrecursor, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME);
+        	countAluminum = countSilica = 0;
+        }
+
         if (isPrecursor()) {
             if (worldObj.isRemote && progressTicks > TICKS_PRECIPITATION_DELAY && progressTicks < TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL) {
                 AxisAlignedBB box = TileEntityCauldron.AABB_WATER;
@@ -260,6 +267,8 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
             AxisAlignedBB waterBox = getWaterCollisionBox().offset(getPos());
             for (EntityItem entityItem : worldObj.getEntitiesWithinAABB(EntityItem.class, waterBox)) {
                 consumeDust(entityItem);
+                if (countAluminum == 7 && countSilica == 7)
+                	break;
             }
         }
     }
@@ -442,7 +451,8 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
     @Override
     public int fill(FluidStack resource, boolean doFill) {
-        if (resource == null || resource.getFluid() == null)
+        if (hasMaximunSolidPrecipitate() || resource == null || resource.getFluid() == null
+        		|| !((resource.getFluid() == FluidRegistry.WATER && isPureWater()) || (resource.getFluid() == FluidsKaoliniteTest.kaolinitePrecursor && (isPrecursor() || isPureWater()))))
             return 0;
 
         double fluidTemp = resource.getFluid().getTemperature() - 273.15D;
@@ -450,6 +460,10 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         if (doFill) {
             int V1 = tank.getFluidAmount();
             waterTemp = (V1 * waterTemp + V2 * fluidTemp) / (V1 + V2);
+            if (resource.getFluid() == FluidsKaoliniteTest.kaolinitePrecursor && isPureWater()) {
+            	setCountAluminum(7);
+                setCountSilica(7);
+            }
         }
         return V2;
     }
@@ -457,14 +471,25 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     @Override
     @Nullable
     public FluidStack drain(int maxDrain, boolean doDrain) {
-        return tank.drain(maxDrain, doDrain);
+    	if (preventDraining())
+            return null;
+    	FluidStack result = tank.drain(maxDrain, doDrain);
+    	if (isEmpty())
+    		setPureWater();
+        return result;
     }
 
     @Override
     @Nullable
     public FluidStack drain(FluidStack resource, boolean doDrain) {
+    	if (preventDraining())
+            return null;
         return tank.drain(resource, doDrain);
     }
+
+    private boolean preventDraining() {
+		return !(isPrecursor() || isPureWater()) || (hasSolidPrecipitate() && !hasMaximunSolidPrecipitate());
+	}
 
     public boolean isFull() {
         return tank.getFluidAmount() == tank.getCapacity();
