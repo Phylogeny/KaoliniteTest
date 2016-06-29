@@ -242,8 +242,9 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
             progressTicks++;
         }
 
-        if (progressTicks == TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL) {
+        if (progressTicks == TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL && isPrecursor()) {
             setPureWater();
+            tank = new FluidTank(FluidRegistry.WATER, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME);
         }
 
         if (countAluminum == 7 && countSilica == 7 && dustBufferCount == 0) {
