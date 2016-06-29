@@ -68,15 +68,13 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     private double waterTemp = 22.0;
 
     @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing)
-    {
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
         return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing)
-    {
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
             return (T) this;
         return super.getCapability(capability, facing);
@@ -104,7 +102,6 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
     @Override
     public void onDataPacket(NetworkManager networkManager, SPacketUpdateTileEntity s35PacketUpdateTileEntity) {
-        super.onDataPacket(networkManager, s35PacketUpdateTileEntity);
         readFromNBT(s35PacketUpdateTileEntity.getNbtCompound());
         worldObj.markBlockRangeForRenderUpdate(pos, pos);
     }
