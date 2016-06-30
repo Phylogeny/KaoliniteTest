@@ -22,7 +22,6 @@ import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -48,12 +47,10 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class TileEntityCauldron extends TileEntity implements ITickable, IFluidHandler, IInventory {
+public class TileEntityCauldron extends TileEntity implements ITickable, IFluidHandler, IItemHandler {
     public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
     private FluidTank tank = new FluidTank(Fluid.BUCKET_VOLUME);
-    private IItemHandler itemHandler = new InvWrapper(this);
     private ItemStack kaoliniteBall = null;
     private static final String DUST_DEATH_COUNTER = "dustDeathCounter";
     private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
@@ -82,11 +79,8 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+        if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
             return (T) this;
-        } else if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return (T) itemHandler;
-        }
         return super.getCapability(capability, facing);
     }
 
@@ -525,89 +519,38 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     }
 
     @Override
-    public String getName() {
-        return "";
-    }
-
-    @Override
-    public boolean hasCustomName() {
-        return false;
-    }
-
-    @Override
-    public int getSizeInventory() {
-        return 1;
-    }
-
-    @Override
     @Nullable
     public ItemStack getStackInSlot(int index) {
         return index == 0 ? kaoliniteBall : null;
     }
 
-    @Override
-    @Nullable
-    public ItemStack decrStackSize(int index, int count) {
-        if (index == 0 && getFluidAmount() == 0 && kaoliniteBall != null && count > 0)
-        {
-            progressTicks = 0;
-            return removeStackFromSlot(index);
-        }
-        return null;
+    public void clear() {
+        kaoliniteBall = null;
+        progressTicks = 0;
     }
 
     @Override
-    @Nullable
-    public ItemStack removeStackFromSlot(int index) {
-        if (index == 0 && getFluidAmount() == 0) {
-            ItemStack stack = kaoliniteBall;
-            clear();
-            return stack;
-        }
-        return null;
-    }
-
-    @Override
-    public void setInventorySlotContents(int index, @Nullable ItemStack stack) {}
-
-    @Override
-    public int getInventoryStackLimit() {
+    public int getSlots() {
         return 1;
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player) {
-        return false;
+    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+        return null;
     }
 
     @Override
-    public void openInventory(EntityPlayer player) {}
+    public ItemStack extractItem(int slot, int amount, boolean simulate) {
+        if (slot != 0 || getFluidAmount() != 0 || kaoliniteBall == null || amount < 1)
+            return null;
 
-    @Override
-    public void closeInventory(EntityPlayer player) {}
+        if (simulate)
+            return kaoliniteBall.copy();
 
-    @Override
-    public boolean isItemValidForSlot(int index, ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    public int getField(int id) {
-        return 0;
-    }
-
-    @Override
-    public void setField(int id, int value) {}
-
-    @Override
-    public int getFieldCount() {
-        return 0;
-    }
-
-    @Override
-    public void clear() {
-        kaoliniteBall = null;
-        progressTicks = 0;
+        ItemStack stack = kaoliniteBall;
+        clear();
+        markDirty();
+        return stack;
     }
 
 }
