@@ -543,7 +543,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return null;
+        return stack;
     }
 
     @Override
