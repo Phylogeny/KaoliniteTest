@@ -15,7 +15,10 @@ import com.phylogeny.kaolinitetest.client.util.ClientHelper;
 import com.phylogeny.kaolinitetest.init.FluidsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.ItemsKaoliniteTest;
 import com.phylogeny.kaolinitetest.init.SoundsKaoliniteTest;
+import com.phylogeny.kaolinitetest.packet.PacketCauldronClearInventory;
 import com.phylogeny.kaolinitetest.packet.PacketCauldronConsumeItem;
+import com.phylogeny.kaolinitetest.packet.PacketCauldronDrain;
+import com.phylogeny.kaolinitetest.packet.PacketCauldronFluidStack;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.IParticleFactory;
@@ -44,6 +47,7 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -484,6 +488,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
                 setCountSilica(7);
             }
         }
+        syncClientFluidStack(resource, true, doFill);
         return V2;
     }
 
@@ -495,6 +500,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         FluidStack result = tank.drain(maxDrain, doDrain);
         if (isEmpty())
             setPureWater();
+        syncClient(new PacketCauldronDrain(pos, maxDrain, doDrain));
         return result;
     }
 
@@ -503,6 +509,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     public FluidStack drain(FluidStack resource, boolean doDrain) {
         if (preventDraining())
             return null;
+        syncClientFluidStack(resource, false, doDrain);
         return tank.drain(resource, doDrain);
     }
 
@@ -550,7 +557,19 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         ItemStack stack = kaoliniteBall;
         clear();
         markDirty();
+        syncClient(new PacketCauldronClearInventory(pos));
         return stack;
+    }
+
+    private void syncClientFluidStack(FluidStack fluidStack, boolean fill, boolean doAction) {
+        syncClient(new PacketCauldronFluidStack(pos, fluidStack, fill, doAction));
+    }
+
+    private void syncClient(IMessage packet) {
+        if (worldObj.isRemote)
+            return;
+
+        KaoliniteTest.packetNetwork.sendToAllAround(packet, new TargetPoint(worldObj.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
     }
 
 }

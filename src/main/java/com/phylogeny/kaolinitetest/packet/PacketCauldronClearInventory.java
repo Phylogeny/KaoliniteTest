@@ -4,19 +4,17 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import com.phylogeny.kaolinitetest.tileentity.TileEntityCauldron;
 
-public class PacketCauldronRainFill extends PacketPositioned {
+public class PacketCauldronClearInventory extends PacketPositioned {
 
-    public PacketCauldronRainFill() {}
+    public PacketCauldronClearInventory() {}
 
-    public PacketCauldronRainFill(BlockPos pos) {
+    public PacketCauldronClearInventory(BlockPos pos) {
         super(pos);
     }
 
@@ -30,15 +28,15 @@ public class PacketCauldronRainFill extends PacketPositioned {
         super.fromBytes(buffer);
     }
 
-    public static class Handler implements IMessageHandler<PacketCauldronRainFill, IMessage> {
+    public static class Handler implements IMessageHandler<PacketCauldronClearInventory, IMessage> {
         @Override
-        public IMessage onMessage(final PacketCauldronRainFill message, final MessageContext ctx) {
+        public IMessage onMessage(final PacketCauldronClearInventory message, final MessageContext ctx) {
             Minecraft.getMinecraft().addScheduledTask(new Runnable() {
                 @Override
                 public void run() {
                     TileEntity tileEntity = Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
                     if (tileEntity != null && tileEntity instanceof TileEntityCauldron) {
-                        ((TileEntityCauldron) tileEntity).fill(new FluidStack(FluidRegistry.WATER, 50), true);
+                        ((TileEntityCauldron) tileEntity).clear();
                     }
                 }
             });
