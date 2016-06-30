@@ -22,8 +22,10 @@ import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
@@ -44,10 +46,15 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class TileEntityCauldron extends TileEntity implements ITickable, IFluidHandler {
+public class TileEntityCauldron extends TileEntity implements ITickable, IFluidHandler, IInventory {
     public static final AxisAlignedBB AABB_WATER = new AxisAlignedBB(0.1875, 0.3125, 0.1875, 0.8125, 0.8125, 0.8125);
     private FluidTank tank = new FluidTank(Fluid.BUCKET_VOLUME);
+    private IItemHandler itemHandler = new InvWrapper(this);
+    private ItemStack kaoliniteBall = null;
     private static final String DUST_DEATH_COUNTER = "dustDeathCounter";
     private List<DustBufferElement> dustBuffer = new ArrayList<DustBufferElement>();
     private float dustBufferTotalAlpha;
@@ -69,14 +76,17 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
+        return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+        if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
             return (T) this;
+        } else if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            return (T) itemHandler;
+        }
         return super.getCapability(capability, facing);
     }
 
@@ -240,13 +250,15 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         }
 
         if (progressTicks == TICKS_PRECIPITATION_DELAY + TICKS_PRECIPITATION_TOTAL && isPrecursor()) {
-            setPureWater();
             tank = new FluidTank(FluidRegistry.WATER, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME);
+            if (!worldObj.isRemote)
+                kaoliniteBall = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
+            setPureWater();
         }
 
         if (countAluminum == 7 && countSilica == 7 && dustBufferCount == 0) {
-        	tank = new FluidTank(FluidsKaoliniteTest.kaolinitePrecursor, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME);
-        	countAluminum = countSilica = 0;
+            tank = new FluidTank(FluidsKaoliniteTest.kaolinitePrecursor, Fluid.BUCKET_VOLUME, Fluid.BUCKET_VOLUME);
+            countAluminum = countSilica = 0;
         }
 
         if (isPrecursor()) {
@@ -261,12 +273,12 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
         if (!isFull())
             return;
-        if (!worldObj.isRemote) {
+        if (!worldObj.isRemote && !isPrecursor() && !hasMaximunSolidPrecipitate()) {
             AxisAlignedBB waterBox = getWaterCollisionBox().offset(getPos());
             for (EntityItem entityItem : worldObj.getEntitiesWithinAABB(EntityItem.class, waterBox)) {
                 consumeDust(entityItem);
                 if (countAluminum == 7 && countSilica == 7)
-                	break;
+                    break;
             }
         }
     }
@@ -368,6 +380,14 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         nbt.setDouble("waterTemp", waterTemp);
         nbt.setInteger("ticksProgress", progressTicks);
         nbt.setBoolean("isCauldronBurning", isBurning);
+        NBTTagList nbttaglist = new NBTTagList();
+        if (kaoliniteBall != null) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setByte("Slot", (byte)0);
+            kaoliniteBall.writeToNBT(nbttagcompound);
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        nbt.setTag("Items", nbttaglist);
         return nbt;
     }
 
@@ -380,6 +400,13 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
         waterTemp = nbt.getDouble("waterTemp");
         progressTicks = nbt.getInteger("ticksProgress");
         isBurning = nbt.getBoolean("isCauldronBurning");
+        NBTTagList nbttaglist = nbt.getTagList("Items", 10);
+        if (nbttaglist.tagCount() == 1) {
+            NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(0);
+            if ((nbttagcompound.getByte("Slot") & 255) == 0) {
+                kaoliniteBall = ItemStack.loadItemStackFromNBT(nbttagcompound);
+            }
+        }
     }
 
     public float getAlpha() {
@@ -450,7 +477,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     @Override
     public int fill(FluidStack resource, boolean doFill) {
         if (hasMaximunSolidPrecipitate() || resource == null || resource.getFluid() == null
-        		|| !((resource.getFluid() == FluidRegistry.WATER && isPureWater()) || (resource.getFluid() == FluidsKaoliniteTest.kaolinitePrecursor && (isPrecursor() || isPureWater()))))
+                || !((resource.getFluid() == FluidRegistry.WATER && isPureWater()) || (resource.getFluid() == FluidsKaoliniteTest.kaolinitePrecursor && (isPrecursor() || isPureWater()))))
             return 0;
 
         double fluidTemp = resource.getFluid().getTemperature() - 273.15D;
@@ -459,7 +486,7 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
             int V1 = tank.getFluidAmount();
             waterTemp = (V1 * waterTemp + V2 * fluidTemp) / (V1 + V2);
             if (resource.getFluid() == FluidsKaoliniteTest.kaolinitePrecursor && isPureWater()) {
-            	setCountAluminum(7);
+                setCountAluminum(7);
                 setCountSilica(7);
             }
         }
@@ -469,25 +496,25 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
     @Override
     @Nullable
     public FluidStack drain(int maxDrain, boolean doDrain) {
-    	if (preventDraining())
+        if (preventDraining())
             return null;
-    	FluidStack result = tank.drain(maxDrain, doDrain);
-    	if (isEmpty())
-    		setPureWater();
+        FluidStack result = tank.drain(maxDrain, doDrain);
+        if (isEmpty())
+            setPureWater();
         return result;
     }
 
     @Override
     @Nullable
     public FluidStack drain(FluidStack resource, boolean doDrain) {
-    	if (preventDraining())
+        if (preventDraining())
             return null;
         return tank.drain(resource, doDrain);
     }
 
     private boolean preventDraining() {
-		return !(isPrecursor() || isPureWater()) || (hasSolidPrecipitate() && !hasMaximunSolidPrecipitate());
-	}
+        return !(isPrecursor() || isPureWater()) || (hasSolidPrecipitate() && !hasMaximunSolidPrecipitate());
+    }
 
     public boolean isFull() {
         return tank.getFluidAmount() == tank.getCapacity();
@@ -495,6 +522,92 @@ public class TileEntityCauldron extends TileEntity implements ITickable, IFluidH
 
     public boolean isEmpty() {
         return tank.getFluidAmount() == 0;
+    }
+
+    @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
+    public boolean hasCustomName() {
+        return false;
+    }
+
+    @Override
+    public int getSizeInventory() {
+        return 1;
+    }
+
+    @Override
+    @Nullable
+    public ItemStack getStackInSlot(int index) {
+        return index == 0 ? kaoliniteBall : null;
+    }
+
+    @Override
+    @Nullable
+    public ItemStack decrStackSize(int index, int count) {
+        if (index == 0 && getFluidAmount() == 0 && kaoliniteBall != null && count > 0)
+        {
+            progressTicks = 0;
+            return removeStackFromSlot(index);
+        }
+        return null;
+    }
+
+    @Override
+    @Nullable
+    public ItemStack removeStackFromSlot(int index) {
+        if (index == 0 && getFluidAmount() == 0) {
+            ItemStack stack = kaoliniteBall;
+            clear();
+            return stack;
+        }
+        return null;
+    }
+
+    @Override
+    public void setInventorySlotContents(int index, @Nullable ItemStack stack) {}
+
+    @Override
+    public int getInventoryStackLimit() {
+        return 1;
+    }
+
+    @Override
+    public boolean isUseableByPlayer(EntityPlayer player) {
+        return false;
+    }
+
+    @Override
+    public void openInventory(EntityPlayer player) {}
+
+    @Override
+    public void closeInventory(EntityPlayer player) {}
+
+    @Override
+    public boolean isItemValidForSlot(int index, ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public int getField(int id) {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value) {}
+
+    @Override
+    public int getFieldCount() {
+        return 0;
+    }
+
+    @Override
+    public void clear() {
+        kaoliniteBall = null;
+        progressTicks = 0;
     }
 
 }

@@ -196,14 +196,17 @@ public class BlockCauldron extends Block {
         ExtendedRayTraceResult lookObject = getExtendedRayTraceResultFromPlayer(playerIn, pos);
 
         if (cauldronTE.isEmpty() && fullOfSolidPrecipitate && lookObject != null && lookObject.isLookingAtPrecipitate && (heldItem == null || (heldItem.getItem() == ItemsKaoliniteTest.kaoliniteBall && heldItem.stackSize < heldItem.getMaxStackSize()))) {
-            ItemStack stack;
-            if (heldItem == null) {
-                stack = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
-            } else {
-                stack = heldItem.copy();
-                stack.stackSize = Math.min(stack.stackSize + 1, stack.getMaxStackSize());
+            if (!worldIn.isRemote) {
+                ItemStack stack;
+                if (heldItem == null) {
+                    stack = new ItemStack(ItemsKaoliniteTest.kaoliniteBall);
+                } else {
+                    stack = heldItem.copy();
+                    stack.stackSize = Math.min(stack.stackSize + 1, stack.getMaxStackSize());
+                }
+                playerIn.setHeldItem(hand, stack);
+                cauldronTE.clear();
             }
-            playerIn.setHeldItem(hand, stack);
             cauldronTE.setProgressTicks(0);
             worldIn.notifyNeighborsOfStateChange(pos, cauldronTE.getBlockType());
             return true;
@@ -215,7 +218,7 @@ public class BlockCauldron extends Block {
         Item item = heldItem.getItem();
 
         if (lookObject != null && lookObject.isLookingAtLogs) {
-            return interactWithLogs(worldIn, pos, state, cauldronTE, playerIn, hand, heldItem, item, lookObject);
+            return interactWithLogs(worldIn, pos, cauldronTE, playerIn, hand, heldItem, item, lookObject);
         }
 
         boolean isPrecursor = cauldronTE.isPrecursor();
@@ -342,7 +345,7 @@ public class BlockCauldron extends Block {
         playerIn.addStat(StatList.CAULDRON_USED);
     }
 
-    private boolean interactWithLogs(World worldIn, BlockPos pos, IBlockState state, TileEntityCauldron cauldronTE, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, ExtendedRayTraceResult lookObject) {
+    private boolean interactWithLogs(World worldIn, BlockPos pos, TileEntityCauldron cauldronTE, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, Item item, ExtendedRayTraceResult lookObject) {
         if (item == Items.WATER_BUCKET) {
             playEmptyBucketSound(worldIn, pos, playerIn);
             int n = cauldronTE.isBurning() ? 4 : 3;
