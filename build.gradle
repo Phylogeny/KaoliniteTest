@@ -12,7 +12,7 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "1.10-1.13.0"
+version = "1.10-1.14.0"
 group= "com.phylogeny.kaolinitetest"
 archivesBaseName = "KaoliniteTest"
 
